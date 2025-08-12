@@ -3,8 +3,14 @@
   line-height: 1.5;
   font-weight: 400;
 
+<<<<<<< HEAD
   color: rgba(34, 39, 45, 0.95);
   background-color: #f2f6fa;
+=======
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -14,15 +20,24 @@
 
 a {
   font-weight: 500;
+<<<<<<< HEAD
   color: #4a90e2;
   text-decoration: none;
 }
 a:hover {
   color: #3b75c1;
+=======
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 
 body {
   margin: 0;
+<<<<<<< HEAD
   height: 100vh;
   display: flex;
   align-items: center;
@@ -32,12 +47,21 @@ body {
   background: linear-gradient(-45deg, #a8edea, #7bdff2, #48c6ef, #57e299);
   background-size: 400% 400%;
   animation: fondoAnimado 15s ease infinite;
+=======
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+<<<<<<< HEAD
   color: #1f2d3d;
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 
 button {
@@ -47,6 +71,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
+<<<<<<< HEAD
   background-color: #39424e;
   color: white;
   cursor: pointer;
@@ -55,6 +80,14 @@ button {
 button:hover {
   background-color: #2f3742;
   border-color: #4a90e2;
+=======
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 button:focus,
 button:focus-visible {
@@ -63,6 +96,7 @@ button:focus-visible {
 
 .card {
   padding: 2em;
+<<<<<<< HEAD
   background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
@@ -74,6 +108,8 @@ button:focus-visible {
   animation: fondoAnimado 15s ease infinite;
   height: 100vh;
   width: 100%;
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 
 #app {
@@ -85,6 +121,7 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
+<<<<<<< HEAD
     color: #1f2d3d;
     background-color: #f2f6fa;
   }
@@ -109,3 +146,15 @@ button:focus-visible {
     background-position: 0% 50%;
   }
 }
+=======
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a

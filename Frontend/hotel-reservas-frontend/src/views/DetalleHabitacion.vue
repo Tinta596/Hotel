@@ -32,7 +32,10 @@ import { useRoute } from 'vue-router';
 import api from '../services/api';
 import { useToast } from 'vue-toastification';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 export default {
   setup() {
     const habitacion = ref(null);

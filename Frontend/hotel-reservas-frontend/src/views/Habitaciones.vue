@@ -2,6 +2,7 @@
   <div class="container mt-4">
     <h2>Habitaciones disponibles</h2>
 
+<<<<<<< HEAD
     <div v-if="habitaciones.length" class="row">
       <div v-for="h in habitaciones" :key="h.id" class="col-md-4 mb-4">
         <div class="card">
@@ -22,15 +23,28 @@
             </router-link>
     <!-- MODAL DETALLE HABITACIÓN -->
     <!-- Ahora el detalle se muestra en la vista DetalleHabitacion.vue -->
+=======
+    <div class="row" v-if="habitaciones.length">
+      <div v-for="h in habitaciones" :key="h.id" class="col-md-4 mb-4">
+        <div class="card">
+          <img :src="h.imagen_url" class="card-img-top" />
+          <div class="card-body">
+            <h5>Habitación {{ h.numero }}</h5>
+            <p>{{ h.tipo_nombre }} - ${{ h.precio_base }}</p>
+            <button class="btn btn-primary" @click="abrirReserva(h)">Reservar</button>
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
           </div>
         </div>
       </div>
     </div>
 
+<<<<<<< HEAD
     <div v-else>
       <p>No hay habitaciones disponibles en este momento.</p>
     </div>
 
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     <!-- FORMULARIO MODAL -->
     <div v-if="habitacionSeleccionada" class="modal">
       <div class="modal-content">
@@ -44,21 +58,33 @@
         <label>Plan:</label>
         <select v-model="planSeleccionado" class="form-control">
           <option :value="null">Sin plan</option>
+<<<<<<< HEAD
           <option v-for="plan in planes" :key="plan.id" :value="plan.id">
             {{ plan.nombre }} (+${{ plan.precio_adicional }})
           </option>
         </select>
 
         <label class="mt-2">Servicios:</label>
+=======
+          <option v-for="plan in planes" :key="plan.id" :value="plan.id">{{ plan.nombre }} (+${{ plan.precio_adicional }})</option>
+        </select>
+
+        <label>Servicios:</label>
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
         <div v-for="servicio in servicios" :key="servicio.id">
           <input type="checkbox" :value="servicio.id" v-model="serviciosSeleccionados" />
           {{ servicio.nombre }}
         </div>
 
+<<<<<<< HEAD
         <div class="mt-3">
           <button class="btn btn-success me-2" @click="confirmarReserva">Confirmar</button>
           <button class="btn btn-secondary" @click="cerrarModal">Cancelar</button>
         </div>
+=======
+        <button class="btn btn-success mt-2" @click="confirmarReserva">Confirmar</button>
+        <button class="btn btn-secondary mt-2" @click="cerrarModal">Cancelar</button>
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
       </div>
     </div>
   </div>
@@ -68,12 +94,16 @@
 import { ref, onMounted } from 'vue';
 import api from '../services/api';
 import { useToast } from 'vue-toastification';
+<<<<<<< HEAD
 import miHabitacionImg from '../assets/images/inside-101.png';
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 
 export default {
   setup() {
     const toast = useToast();
     const habitaciones = ref([]);
+<<<<<<< HEAD
     const habitacionDetalle = ref(null);
     const verDetalle = (habitacion) => {
       habitacionDetalle.value = habitacion;
@@ -85,6 +115,11 @@ export default {
     const servicios = ref([]);
     const planes = ref([]);
     
+=======
+    const servicios = ref([]);
+    const planes = ref([]);
+
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     const habitacionSeleccionada = ref(null);
     const serviciosSeleccionados = ref([]);
     const planSeleccionado = ref(null);
@@ -92,6 +127,7 @@ export default {
     const checkout = ref('');
 
     const cargarHabitaciones = async () => {
+<<<<<<< HEAD
       try {
         const res = await api.get('/habitaciones/disponibles');
         habitaciones.value = res.data;
@@ -107,6 +143,15 @@ export default {
       } catch {
         toast.error('Error al cargar opciones');
       }
+=======
+      const res = await api.get('/habitaciones/disponibles');
+      habitaciones.value = res.data;
+    };
+
+    const cargarOpciones = async () => {
+      servicios.value = (await api.get('/servicios')).data;
+      planes.value = (await api.get('/planes')).data;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     };
 
     const abrirReserva = (habitacion) => {
@@ -126,6 +171,7 @@ export default {
 
     const confirmarReserva = async () => {
       const usuario = JSON.parse(localStorage.getItem('usuario'));
+<<<<<<< HEAD
       if (!usuario) {
         toast.error('Debes iniciar sesión para reservar');
         return;
@@ -135,6 +181,8 @@ export default {
         toast.warning('La fecha de salida debe ser posterior a la de entrada');
         return;
       }
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 
       try {
         await api.post('/reservas/reservar', {
@@ -171,11 +219,15 @@ export default {
       planSeleccionado,
       abrirReserva,
       cerrarModal,
+<<<<<<< HEAD
       confirmarReserva,
       miHabitacionImg,
       habitacionDetalle,
       verDetalle,
       cerrarDetalle
+=======
+      confirmarReserva
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     };
   }
 };
@@ -184,19 +236,33 @@ export default {
 <style>
 .modal {
   position: fixed;
+<<<<<<< HEAD
   top: 0; left: 0; width: 100%; height: 100%;
+=======
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
   background: rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
+<<<<<<< HEAD
   z-index: 1000;
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 .modal-content {
   background: white;
   padding: 20px;
   width: 400px;
+<<<<<<< HEAD
   max-width: 90%;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
+=======
+  border-radius: 8px;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 </style>

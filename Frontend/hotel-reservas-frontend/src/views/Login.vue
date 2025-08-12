@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="wrapper">
     <div class="main-container">
       <img class="avatar" :src="usersIcon" alt="Usuario" />
@@ -25,6 +26,29 @@
 </template>
 
 
+=======
+  <div class="main-container">
+    <img class="avatar" :src="usersIcon" alt="Usuario" />
+    <h2>Iniciar Sesión</h2>
+    <p>Bienvenido al sistema</p>
+
+    <div class="icon-input">
+      <img class="icon" :src="userIcon" alt="Usuario" />
+      <input v-model="email" type="email" placeholder="Correo electrónico" required />
+    </div>
+
+    <div class="icon-input">
+      <img class="icon" :src="userXIcon" alt="Contraseña" />
+      <input v-model="password" type="password" placeholder="Contraseña" required />
+    </div>
+
+    <button @click="login">Ingresar</button>
+
+    <p class="mensaje" :class="{ mostrar: mensaje }">{{ mensaje }}</p>
+  </div>
+</template>
+
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 <script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -43,6 +67,7 @@ export default {
 
     const login = async () => {
       try {
+<<<<<<< HEAD
         const response = await store.dispatch('login', {
           email: email.value,
           password: password.value
@@ -63,6 +88,25 @@ export default {
         mensaje.value = error.response?.data?.error || 'Credenciales incorrectas o usuario inactivo.';
       }
     };
+=======
+        const res = await store.dispatch('login', { email: email.value, password: password.value });
+        const usuario = res.user;
+
+        if (usuario.rol === 'admin') {
+          router.push('/dashboard-admin');
+        } else if (usuario.rol === 'trabajador') {
+          router.push('/dashboard-trabajador');
+        } else {
+          toast.error('Rol no reconocido');
+        }
+      } catch (err) {
+        mensaje.value = err.response?.data?.error || 'Error al iniciar sesión';
+      }
+};
+
+
+  
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 
 
     return {
@@ -83,6 +127,7 @@ export default {
   box-sizing: border-box;
 }
 
+<<<<<<< HEAD
 .wrapper {
   height: 100vh;
   display: flex;
@@ -91,6 +136,8 @@ export default {
   background: linear-gradient(to right, #4facfe, #00f2fe);
 }
 
+=======
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
@@ -102,6 +149,7 @@ body {
 }
 
 .main-container {
+<<<<<<< HEAD
   background-color: #ffffffee; /* blanco con un poco de transparencia */
   padding: 40px;
   border-radius: 16px;
@@ -109,6 +157,11 @@ body {
   width: 100%;
   max-width: 400px;
   text-align: center;
+=======
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+>>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 }
 
 .avatar {
