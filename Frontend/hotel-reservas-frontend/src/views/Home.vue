@@ -1,5 +1,4 @@
 <template>
-<<<<<<< HEAD
   <div class="home-container text-center">
     <img :src="logoUrl" alt="Logo Hotel" class="logo" />
 
@@ -67,16 +66,10 @@
       <p>"Una experiencia excelente, fácil de reservar y excelente atención".</p>
       <footer class="blockquote-footer">Cliente satisfecho</footer>
     </blockquote>
-=======
-  <div class="container mt-5 text-center">
-    <h1>Bienvenido al Sistema de Reservas del Hotel</h1>
-    <p class="lead">Gestiona habitaciones, reservas y servicios desde una sola interfaz.</p>
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
   </div>
 </template>
 
 <script>
-<<<<<<< HEAD
 import logo from '../assets/logo.png';
 
 export default {
@@ -199,9 +192,3 @@ ul li {
   font-size: 0.9rem;
 }
 </style>
-=======
-export default {
-  name: 'Home'
-};
-</script>
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a

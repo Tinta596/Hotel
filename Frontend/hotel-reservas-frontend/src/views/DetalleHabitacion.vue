@@ -32,10 +32,6 @@ import { useRoute } from 'vue-router';
 import api from '../services/api';
 import { useToast } from 'vue-toastification';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 export default {
   setup() {
     const habitacion = ref(null);
@@ -47,15 +43,11 @@ export default {
         const res = await api.get(`/habitaciones/${route.params.id}`);
         habitacion.value = res.data;
       } catch (err) {
-        toast.error('No se pudieron cargar los detalles');
+        toast.error('No se pudieron cargar los detalles de la habitación');
       }
     };
 
-    onMounted(async () =>{
-      const id = route.params.id;
-      const res = await api.get(`/habitaciones/${id}`);
-      habitacion.value = res.data;
-    });
+    onMounted(cargarDetalles);
 
     return { habitacion };
   }

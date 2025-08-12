@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Router } from 'express';
 const router = Router();
 import { register, login } from '../controllers/auth.js';

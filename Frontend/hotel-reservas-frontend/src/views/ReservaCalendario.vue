@@ -16,22 +16,16 @@
       <label>Habitación</label>
       <select v-model="habitacionId" class="form-select">
         <option disabled value="">Selecciona una habitación</option>
-<<<<<<< HEAD
         <option
           v-for="habitacion in habitaciones"
           :key="habitacion.id"
           :value="habitacion.id"
         >
           Habitación {{ habitacion.numero }} - {{ habitacion.tipo_habitacion }}
-=======
-        <option v-for="habitacion in habitaciones" :key="habitacion.id" :value="habitacion.id">
-          Habitación {{ habitacion.numero }}
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
         </option>
       </select>
     </div>
 
-<<<<<<< HEAD
     <div class="mb-3">
       <label>Plan</label>
       <select v-model="planId" class="form-select">
@@ -49,15 +43,11 @@
     <button class="btn btn-secondary ms-2" @click="calcularPrecio">
       Calcular precio
     </button>
-=======
-    <button class="btn btn-primary" @click="verificarDisponibilidad">Verificar disponibilidad</button>
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
 
     <div v-if="disponible !== null" class="mt-3">
       <p v-if="disponible" class="text-success">✅ La habitación está disponible</p>
       <p v-else class="text-danger">❌ No disponible en esas fechas</p>
     </div>
-<<<<<<< HEAD
 
     <div v-if="precio !== null" class="mt-3">
       <p class="fw-bold">💰 Precio total estimado: ${{ precio.toLocaleString() }}</p>
@@ -66,8 +56,6 @@
     <div v-if="errorMensaje" class="text-danger mt-2">
       ⚠️ {{ errorMensaje }}
     </div>
-=======
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
   </div>
 </template>
 
@@ -82,7 +70,6 @@ export default {
     const fechaCheckin = ref(null);
     const fechaCheckout = ref(null);
     const habitacionId = ref('');
-<<<<<<< HEAD
     const planId = ref('');
     const habitaciones = ref([]);
     const planes = ref([]);
@@ -148,43 +135,17 @@ export default {
         console.error('❌ Error al calcular precio:', error);
         errorMensaje.value = error.response?.data?.error || 'Error al calcular precio';
       }
-=======
-    const habitaciones = ref([]);
-    const disponible = ref(null);
-
-    const cargarHabitaciones = async () => {
-      const res = await api.get('/habitaciones'); // o habitaciones disponibles
-      habitaciones.value = res.data;
-    };
-
-    const verificarDisponibilidad = async () => {
-      if (!fechaCheckin.value || !fechaCheckout.value || !habitacionId.value) return;
-
-      const { data } = await api.get('/reservas/verificar', {
-        params: {
-          habitacion_id: habitacionId.value,
-          fecha_checkin: fechaCheckin.value.toISOString().slice(0, 10),
-          fecha_checkout: fechaCheckout.value.toISOString().slice(0, 10)
-        }
-      });
-
-      disponible.value = data.disponible;
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     };
 
     onMounted(() => {
       cargarHabitaciones();
-<<<<<<< HEAD
       cargarPlanes();
-=======
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     });
 
     return {
       fechaCheckin,
       fechaCheckout,
       habitacionId,
-<<<<<<< HEAD
       planId,
       habitaciones,
       planes,
@@ -193,11 +154,6 @@ export default {
       errorMensaje,
       verificarDisponibilidad,
       calcularPrecio
-=======
-      habitaciones,
-      disponible,
-      verificarDisponibilidad
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     };
   }
 };

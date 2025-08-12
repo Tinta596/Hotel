@@ -13,10 +13,6 @@ const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
-<<<<<<< HEAD
-
-=======
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
   {
     path: '/habitaciones',
     name: 'Habitaciones',
@@ -36,38 +32,28 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-<<<<<<< HEAD
     path: '/admin',
     name: 'AdminDashboard',
     component: AdminDashboard,
     meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
-=======
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
     path: '/dashboard-trabajador',
     name: 'DashboardTrabajador',
     component: () => import('../views/TrabajadorDashboard.vue'),
     meta: { requiresAuth: true, roles: ['trabajador'] }
   },
   {
-<<<<<<< HEAD
     path: '/habitaciones/:id',
     name: 'DetalleHabitacion',
     component: DetalleHabitacion,
     meta: { requiresAuth: true }
-=======
-    path: '/admin',
-    name: 'AdminDashboard',
-    component: AdminDashboard,
-    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
     path: '/trabajador/habitaciones/:id',
-    name: 'DetalleHabitacion',
+    name: 'DetalleHabitacionTrabajador',
     component: DetalleHabitacion,
     meta: { requiresAuth: true, roles: ['trabajador'] }
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
   }
 ];
 
@@ -76,50 +62,29 @@ const router = createRouter({
   routes
 });
 
-<<<<<<< HEAD
-=======
-// ✅ Middleware global
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
+// ✅ Middleware global de navegación
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   const usuario = JSON.parse(localStorage.getItem('usuario'));
 
-<<<<<<< HEAD
-  // 🔐 Verificar si necesita autenticación
-=======
-  // Bloquea rutas protegidas sin login
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
+  // 🔐 Rutas que requieren autenticación
   if (to.meta.requiresAuth && (!token || !usuario)) {
     return next('/login');
   }
 
-<<<<<<< HEAD
-  // 🔐 Verificar roles específicos si están definidos
+  // 🔐 Rutas que requieren rol específico
   if (to.meta.roles && (!usuario || !to.meta.roles.includes(usuario.rol))) {
     return next('/');
   }
 
-  // 🚫 Redirigir si ya está logueado e intenta entrar a login/register
+  // 🚫 Evitar que usuarios logueados entren a login/register
   if ((to.path === '/login' || to.path === '/register') && token && usuario) {
-    return next('/');
-=======
-  // Verifica rol si es requerido
-  if (to.meta.roles && !to.meta.roles.includes(usuario?.rol)) {
-    return next('/');
-  }
-
-  // Si va a /login y ya está autenticado
-  if (to.path === '/login' && token && usuario) {
     if (usuario.rol === 'admin') return next('/admin');
     if (usuario.rol === 'trabajador') return next('/dashboard-trabajador');
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
+    return next('/');
   }
 
   next();
 });
 
-<<<<<<< HEAD
 export default router;
-=======
-export default router;
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
