@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import { createPool } from 'mysql2/promise';
-=======
-const mysql = require('mysql2/promise');
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
+
 
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
@@ -15,12 +12,7 @@ const dbConfig = {
   queueLimit: 0
 };
 
-<<<<<<< HEAD
+
 const pool = createPool(dbConfig);
 
 export default pool;
-=======
-const pool = mysql.createPool(dbConfig);
-
-module.exports = pool;
->>>>>>> 390202ab3cbc33fac736ae6ba4ebd5e446fb2b3a
