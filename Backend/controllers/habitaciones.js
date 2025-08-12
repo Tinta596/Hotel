@@ -193,14 +193,31 @@ export async function cancelarReserva(req, res, next) {
 
 export async function verificarDisponibilidad(req, res, next) {
   const { habitacion_id, fecha_checkin, fecha_checkout } = req.query;
-  try {
-    await db.execute('CALL verificar_disponibilidad_habitacion(?, ?, ?, @disponible)', [
-      habitacion_id, fecha_checkin, fecha_checkout
-    ]);
-    const [[{ disponible }]] = await db.execute('SELECT @disponible AS disponible');
-    res.json({ disponible });
-  } catch (error) {
-    next(error);
+  
+  //Validar parámetros obligatorios
+  if (!habitacion_id || !fecha_checkin || !fecha_checkout){
+    return res.status(400).json({ error: 'Faltan parámetros: habitacion_id, fecha_checkin o fecha_checkout' });
+
+    try {
+      // Llamada al procedimiento almacenado
+      await db.execute(
+        'CALL verificar_disponibilidad_habitacion(?, ?, ?, @disponible)',
+        [habitacion_id, fecha_checkin, fecha_checkout]
+      );
+
+      //Obtener el valor de salida del procedimiento
+      const [[row]] = await db.execute('SELECT @disponible AS disponible');
+
+      // Validar resultado
+      if(typeof row.disponible === 'undefined'){
+        return res.status(500).json({ error: 'No se pudo obtener disponibilidad' });
+      }
+
+      res.json({ disponible: Boolean(row.disponible) });
+    } catch (error) {
+      console.error('Error en verificarDisponibilidad:', error);
+      next(error)      
+    }
   }
 }
 
