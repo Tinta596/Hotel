@@ -12,7 +12,7 @@ const dbConfig = {
   queueLimit: 0
 };
 
+
 const pool = createPool(dbConfig);
 
 export default pool;
-

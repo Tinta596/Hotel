@@ -1,9 +1,11 @@
 import pkg from 'jsonwebtoken';
-const {verify} = pkg;
+const { verify } = pkg;
+
 import db from '../config/database.js';
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Autenticación del token y verificación del usuario activo
+// Middleware: Autenticación del token y verificación del usuario activo
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader?.split(' ')[1];
@@ -39,6 +41,7 @@ const authenticateToken = async (req, res, next) => {
 };
 
 // Middleware para verificar rol (admin, trabajador, etc.)
+// Middleware: Verificación de rol (admin, trabajador, etc.)
 function requireRole(roles) {
   return (req, res, next) => {
     console.log('👤 Usuario:', req.user);
@@ -59,9 +62,10 @@ const isOwnerOrAdmin = (req, res, next) => {
 
   // Aquí chequeas id del recurso en params, body o query:
   const resourceUserId = req.params.userId || req.body.usuario_id || req.query.usuario_id;
-
   if (resourceUserId && parseInt(resourceUserId) !== req.user.id) {
-    return res.status(403).json({ error: 'Solo puedes acceder a tus propios recursos' });
+    return res
+      .status(403)
+      .json({ error: 'Solo puedes acceder a tus propios recursos' });
   }
 
   next();
