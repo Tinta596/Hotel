@@ -1,68 +1,63 @@
-import { Router } from 'express';
+// routes/servicio.routes.js
+import { Router }            from 'express';
+import * as ServicioController from '../controllers/servicio.controller.js';
+import { verifyToken }       from '../middlewares/auth.middleware.js';
+import { verifyRol }         from '../middlewares/roles.middleware.js';
+import { upload }            from '../middlewares/upload.middleware.js';
+
 const router = Router();
-import upload from '../middleware/upload.js';
-import {requireRole , authenticateToken} from '../middleware/auth.js';
 
+// GET /api/servicios
+// GET /api/servicios?activos=true  → solo activos (frontend público)
+router.get('/',
+  verifyToken,
+  ServicioController.listar
+);
 
-import { 
-  obtenerServicios, 
-  crearServicio, 
-  subirImagen, 
-  actualizarServicio, 
-  eliminarServicio, 
-  toggleActivo, 
-  toggleEstadoServicio } from '../controllers/servicios.js';
+// GET /api/servicios/:id
+router.get('/:id',
+  verifyToken,
+  ServicioController.obtenerPorId
+);
 
-// Obtener todos los servicios
-router.get('/', authenticateToken, obtenerServicios);
-
-// Crear un nuevo servicio
-router.post(
-  '/',
-  authenticateToken,
-  requireRole(['admin']),
+// POST /api/servicios
+router.post('/',
+  verifyToken,
+  verifyRol('admin'),
   upload.single('imagen'),
-  crearServicio
+  ServicioController.crear
 );
 
-// Subir imagen de servicio
-router.post(
-  '/subir-imagen',
-  authenticateToken,
-  requireRole(['admin']),
+// PUT /api/servicios/:id
+router.put('/:id',
+  verifyToken,
+  verifyRol('admin'),
   upload.single('imagen'),
-  subirImagen
+  ServicioController.actualizar
 );
 
-// Actualizar un servicio
-router.put(
-  '/:id',
-  authenticateToken,
-  requireRole(['admin']),
+// PATCH /api/servicios/:id/estado
+// → toggleActivo y toggleEstadoServicio unificados en uno solo
+router.patch('/:id/estado',
+  verifyToken,
+  verifyRol('admin', 'trabajador'),
+  ServicioController.cambiarEstado
+);
+
+// PATCH /api/servicios/:id/imagen
+// → subir imagen de forma independiente
+router.patch('/:id/imagen',
+  verifyToken,
+  verifyRol('admin'),
   upload.single('imagen'),
-  actualizarServicio
+  ServicioController.subirImagen
 );
 
-// Eliminar un servicio
-router.delete(
-  '/:id',
-  authenticateToken,
-  requireRole(['admin']),
-  eliminarServicio
-);
-
-// Alternar estado activo/inactivo
-router.put(
-  '/:id/toggle',
-  authenticateToken,
-  requireRole(['admin', 'usuario']),
-  toggleActivo
-);
-
-router.put(
-  '/servicios/:id/toggle',
-  authenticateToken,
-  toggleEstadoServicio
+// DELETE /api/servicios/:id  (soft delete)
+router.delete('/:id',
+  verifyToken,
+  verifyRol('admin'),
+  ServicioController.eliminar
 );
 
 export default router;

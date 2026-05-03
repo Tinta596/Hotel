@@ -1,147 +1,61 @@
-import db from "../config/database.js";
+import * as ServicioService from '../services/servicio.service.js';
+import { crearServicioDto, actualizarServicioDto } from '../dtos/servicio.dto.js';
 
-export async function obtenerServicios(req,res) {
-    try {
-        const [servicios] = await db.execute('SELECT * FROM servicios');
-        res.json(servicios)
-    } catch (error) {
-        console.error('❌ Error al obtener servicios:', error);
-        res.status(500).json({ error : 'Error al obtener servicios' })
-    }
-}
-
-export async function crearServicio(req, res, next) {
-    try {
-        const {
-            nombre,
-            descripcion,
-            precio,
-            capacidad_maxima,
-            horario_inicio,
-            horario_fin,
-            requiere_reserva
-        } = req.body;
-
-        const imagen_url = req.file ? `/uploads/servicios/${req.file.filename}` : null;
-        
-        const [result] = await db.execute(
-            `INSERT INTO servicios 
-            (nombre, descripcion, precio, capacidad_maxima, horario_inicio, horario_fin, requiere_reserva, activo, imagen_url)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [nombre, descripcion, precio, capacidad_maxima, horario_inicio, horario_fin, requiere_reserva, true, imagen_url]
-        );
-
-        res.status(201).json({
-            message: 'Servicio creado exitosamente',
-            id: result.insertId
-        })
-    } catch (error) {
-        next(error);
-    }
-}
-
-export async function subirImagen(req, res) {
+export const listar = async (req, res, next) => {
   try {
-    const imagenUrl = `/uploads/servicios/${req.file.filename}`;
-    res.status(200).json({
-      message: 'Imagen subida correctamente',
-      imagen_url: imagenUrl
-    });
-  } catch (error) {
-    console.error('❌ Error al subir imagen:', error);
-    res.status(500).json({ error: 'Error al subir imagen' });
-  }
-}
+    const soloActivos = req.query.activos === 'true';
+    const servicios = await ServicioService.listar(soloActivos);
+    res.json(servicios);
+  } catch (err) { next(err); }
+};
 
-export async function actualizarServicio(req, res) {
-  const { id } = req.params;
-  const {
-    nombre, descripcion, precio, capacidad_maxima,
-    horario_inicio, horario_fin, requiere_reserva, activo
-  } = req.body;
-
-  const imagen_url = req.file ? `/uploads/servicios/${req.file.filename}` : null;
-
+export const obtenerPorId = async (req, res, next) => {
   try {
-    const updateQuery = `UPDATE servicios SET
-      nombre = ?, descripcion = ?, precio = ?, capacidad_maxima = ?,
-      horario_inicio = ?, horario_fin = ?, requiere_reserva = ?, activo = ?
-      ${imagen_url ? ', imagen_url = ?' : ''}
-      WHERE id = ?`;
+    const servicio = await ServicioService.obtenerPorId(req.params.id);
+    res.json(servicio);
+  } catch (err) { next(err); }
+};
 
-    const updateParams = [
-      nombre, descripcion, precio ?? null, capacidad_maxima ?? null,
-      horario_inicio ?? null, horario_fin ?? null, requiere_reserva ?? false, activo,
-      ...(imagen_url ? [imagen_url] : []), id
-    ];
-
-    const [result] = await db.execute(updateQuery, updateParams);
-
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Servicio no encontrado' });
-
-    res.json({ message: 'Servicio actualizado exitosamente' });
-  } catch (error) {
-    console.error('❌ Error al actualizar servicio:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-}
-
-export async function eliminarServicio(req, res) {
+export const crear = async (req, res, next) => {
   try {
-    const [result] = await db.execute('DELETE FROM servicios WHERE id = ?', [req.params.id]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Servicio no encontrado' });
+    const { error, value } = crearServicioDto.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
-    res.json({ message: 'Servicio eliminado exitosamente' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar servicio' });
-  }
-}
+    const servicio = await ServicioService.crear(value, req.file);
+    res.status(201).json({ message: 'Servicio creado exitosamente', servicio });
+  } catch (err) { next(err); }
+};
 
-export async function toggleActivo(req, res) {
-  const { id } = req.params;
-
+export const actualizar = async (req, res, next) => {
   try {
-    const [[servicio]] = await db.execute('SELECT activo FROM servicios WHERE id = ?', [id]);
-    if (!servicio) return res.status(404).json({ error: 'Servicio no encontrado' });
+    const { error, value } = actualizarServicioDto.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
-    const nuevoEstado = !servicio.activo;
+    const servicio = await ServicioService.actualizar(req.params.id, value, req.file);
+    res.json({ message: 'Servicio actualizado exitosamente', servicio });
+  } catch (err) { next(err); }
+};
 
-    await db.execute('UPDATE servicios SET activo = ? WHERE id = ?', [nuevoEstado, id]);
-
+export const cambiarEstado = async (req, res, next) => {
+  try {
+    const nuevoEstado = await ServicioService.cambiarEstado(req.params.id);
     res.json({
-      message: `Servicio ${nuevoEstado ? 'activado' : 'ocultado'} correctamente`,
-      activo: nuevoEstado
+      message: `Servicio ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`,
+      activo: nuevoEstado,
     });
-  } catch (error) {
-    console.error('❌ Error al alternar estado del servicio:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-}
+  } catch (err) { next(err); }
+};
 
-export async function toggleEstadoServicio(req, res) {
-    const { id } = req.params;
-    console.log('🔍 ID recibido:', id);
+export const eliminar = async (req, res, next) => {
+  try {
+    await ServicioService.eliminar(req.params.id);
+    res.json({ message: 'Servicio eliminado correctamente' });
+  } catch (err) { next(err); }
+};
 
-    try {
-        const [[servicio]] = await db.execute('SELECT activo FROM servicios WHERE id = ?', [id]);
-        console.log('🛠 Servicio encontrado:', servicio);
-
-        if (!servicio) {
-            return res.status(404).json({ error: 'Servicio no encontrado' });
-        }
-
-        const nuevoEstado = !servicio.activo;
-        console.log('📊 Nuevo estado:', nuevoEstado);
-
-        await db.execute('UPDATE servicios SET activo = ? WHERE id = ?', [nuevoEstado, id]);
-
-        res.json({
-            message: `Servicio ${nuevoEstado ? 'activado' : 'ocultado'} correctamente`,
-            activo: nuevoEstado
-        });
-
-    } catch (error) {
-        console.error('❌ Error al alternar estado del servicio:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-}
+export const subirImagen = async (req, res, next) => {
+  try {
+    const imagen_url = await ServicioService.subirImagen(req.params.id, req.file);
+    res.json({ message: 'Imagen subida correctamente', imagen_url });
+  } catch (err) { next(err); }
+};
