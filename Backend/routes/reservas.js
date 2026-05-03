@@ -1,37 +1,104 @@
+// routes/reservacion.routes.js
 import { Router } from 'express';
+import * as ReservacionController from '../controllers/reservacion.controller.js';
+import { verifyToken }  from '../middlewares/auth.middleware.js';
+import { verifyRol }    from '../middlewares/roles.middleware.js';
+
 const router = Router();
-import { requireRole, isOwnerOrAdmin, authenticateToken  } from '../middleware/auth.js';
-import { 
-    calcularPrecioReserva, 
-    obtenerReservas, 
-    crearReserva, 
-    cambiarEstadoReserva, 
-    cancelarReserva, 
-    reservarConServicios, 
-    verificarDisponibilidad, 
-    actualizarFechas, 
-    eliminarReserva, 
-    listarHabitaciones, 
-    listarHabitacionesDisponibles } from '../controllers/reservas.js';
 
-router.post('/calcular-precio', calcularPrecioReserva);
+// ============================================================
+//  HABITACIONES
+//  Prefijo: /api/habitaciones
+// ============================================================
+
+// GET /api/habitaciones
+// → Todas las habitaciones (admin y trabajador)
+router.get(
+  '/',
+  verifyToken,
+  verifyRol('admin', 'trabajador'),
+  ReservacionController.obtenerHabitaciones  // ← necesitas agregar este también al controller
+);
+
+// GET /api/habitaciones/disponibles
+// → Habitaciones con estado = 'disponible'
+router.get(
+  '/disponibles',
+  verifyToken,
+  ReservacionController.obtenerHabitacionesDisponibles
+);
+
+// GET /api/habitaciones/disponibilidad?habitacion_id=&fecha_checkin=&fecha_checkout=
+// → Verifica si una habitación está libre en esas fechas
+router.get(
+  '/disponibilidad',
+  verifyToken,
+  ReservacionController.verificarDisponibilidad
+);
+
+// GET /api/habitaciones/:id
+// → Detalle de una habitación
+router.get(
+  '/:id',
+  verifyToken,
+  ReservacionController.obtenerHabitacionPorId
+);
+
+// PATCH /api/habitaciones/:id/precio
+// → Solo admin puede cambiar el precio
+router.patch(
+  '/:id/precio',
+  verifyToken,
+  verifyRol('admin'),
+  ReservacionController.actualizarPrecioHabitacion
+);
 
 
-// Middleware global: autenticación
-router.use(authenticateToken);
+// ============================================================
+//  RESERVACIONES
+//  Prefijo: /api/reservaciones
+// ============================================================
 
-// Rutas de reservas
-router.get('/', obtenerReservas);
-router.post('/', crearReserva);
-router.put('/:id/estado', requireRole(['admin', 'trabajador']), cambiarEstadoReserva);
-router.put('/:id/cancelar', isOwnerOrAdmin, cancelarReserva);
-router.post('/reservar', reservarConServicios);
-router.get('/verificar-disponibilidad', verificarDisponibilidad);
-router.put('/:id/actualizar-fechas', actualizarFechas);
-router.delete('/:id', requireRole(['admin', 'trabajador', 'usuario']), eliminarReserva);
+// GET /api/reservaciones
+// → Admin ve todas, trabajador ve activas, cliente ve las suyas
+router.get(
+  '/reservaciones',
+  verifyToken,
+  ReservacionController.obtenerReservas
+);
 
-// Rutas relacionadas con habitaciones
-router.get('/habitaciones', requireRole(['admin', 'trabajador']), listarHabitaciones);
-router.get('/disponibles', listarHabitacionesDisponibles);
+// POST /api/reservaciones
+// → Crear una reservación
+router.post(
+  '/reservaciones',
+  verifyToken,
+  ReservacionController.crearReserva
+);
+
+// PATCH /api/reservaciones/:id/estado
+// → Cambiar estado de una reservación (admin y trabajador)
+router.patch(
+  '/reservaciones/:id/estado',
+  verifyToken,
+  verifyRol('admin', 'trabajador'),
+  ReservacionController.actualizarEstadoReserva
+);
+
+// PATCH /api/reservaciones/:id/fechas
+// → Actualizar fechas de una reservación
+router.patch(
+  '/reservaciones/:id/fechas',
+  verifyToken,
+  verifyRol('admin'),
+  ReservacionController.actualizarFechasReserva
+);
+
+// DELETE /api/reservaciones/:id
+// → Cancelar reservación
+router.delete(
+  '/reservaciones/:id',
+  verifyToken,
+  ReservacionController.cancelarReserva
+);
 
 export default router;
