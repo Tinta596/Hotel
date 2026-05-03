@@ -1,61 +1,50 @@
-import db from '../config/database.js';
+import * as PlanService from '../services/plan.service.js';
+import { crearPlanDto, actualizarPlanDto } from '../dtos/plan.dto.js';
 
-// Obtener todos los planes activos
-export async function obtenerPlanes(req, res, next) {
+export const listar = async (req, res, next) => {
   try {
-    const [planes] = await db.execute(`
-      SELECT p.*, 
-             GROUP_CONCAT(CONCAT(s.nombre, ' (', ps.cantidad_incluida, ')') SEPARATOR ', ') as servicios_incluidos
-      FROM planes p
-      LEFT JOIN plan_servicios ps ON p.id = ps.plan_id
-      LEFT JOIN servicios s ON ps.servicio_id = s.id
-      WHERE p.activo = TRUE
-      GROUP BY p.id
-      ORDER BY p.nombre
-    `);
-
+    const planes = await PlanService.listar();
     res.json(planes);
-  } catch (error) {
-    next(error);
-  }
-}
+  } catch (err) { next(err); }
+};
 
-// Crear un nuevo plan con servicios incluidos
-export async function crearPlan(req, res, next) {
+export const obtenerPorId = async (req, res, next) => {
   try {
-    const { nombre, descripcion, precio_adicional, duracion_dias, servicios } = req.body;
+    const plan = await PlanService.obtenerPorId(req.params.id);
+    res.json(plan);
+  } catch (err) { next(err); }
+};
 
-    const connection = await db.getConnection();
-    await connection.beginTransaction();
+export const obtenerServiciosDePlan = async (req, res, next) => {
+  try {
+    const servicios = await PlanService.obtenerServiciosDePlan(req.params.id);
+    res.json(servicios);
+  } catch (err) { next(err); }
+};
 
-    try {
-      // Insertar nuevo plan
-      const [planResult] = await connection.execute(
-        'INSERT INTO planes (nombre, descripcion, precio_adicional, duracion_dias) VALUES (?, ?, ?, ?)',
-        [nombre, descripcion, precio_adicional, duracion_dias]
-      );
+export const crear = async (req, res, next) => {
+  try {
+    const { error, value } = crearPlanDto.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
-      const planId = planResult.insertId;
+    const plan = await PlanService.crear(value);
+    res.status(201).json({ message: 'Plan creado exitosamente', plan });
+  } catch (err) { next(err); }
+};
 
-      // Asociar servicios (si los hay)
-      if (servicios?.length > 0) {
-        for (const servicio of servicios) {
-          await connection.execute(
-            'INSERT INTO plan_servicios (plan_id, servicio_id, cantidad_incluida) VALUES (?, ?, ?)',
-            [planId, servicio.servicio_id, servicio.cantidad_incluida]
-          );
-        }
-      }
+export const actualizar = async (req, res, next) => {
+  try {
+    const { error, value } = actualizarPlanDto.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
-      await connection.commit();
-      res.status(201).json({ message: 'Plan creado exitosamente', id: planId });
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
-    }
-  } catch (error) {
-    next(error);
-  }
-}
+    const plan = await PlanService.actualizar(req.params.id, value);
+    res.json({ message: 'Plan actualizado correctamente', plan });
+  } catch (err) { next(err); }
+};
+
+export const desactivar = async (req, res, next) => {
+  try {
+    await PlanService.desactivar(req.params.id);
+    res.json({ message: 'Plan desactivado correctamente' });
+  } catch (err) { next(err); }
+};
