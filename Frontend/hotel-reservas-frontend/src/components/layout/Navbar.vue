@@ -18,22 +18,7 @@
       </div>
     </div>
 
-    <div class="topbar__search">
-      <Input v-model="search" placeholder="Buscar reserva, habitacion o huesped">
-        <template #icon><Search :size="18" /></template>
-      </Input>
-    </div>
-
     <div class="topbar__actions">
-      <Button variant="ghost" icon-only aria-label="Notificaciones">
-        <template #icon><Bell :size="19" /></template>
-      </Button>
-
-      <Button variant="outline" size="sm">
-        <template #icon><Plus :size="16" /></template>
-        Nueva reserva
-      </Button>
-
       <div class="topbar__user">
         <div class="topbar__avatar">{{ initials }}</div>
         <div class="topbar__identity">
@@ -95,9 +80,9 @@ const logout = () => {
   top: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: minmax(13rem, 1fr) minmax(18rem, 28rem) auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 1rem;
+  gap: 2rem;
   min-height: 5rem;
   padding: 1rem 1.5rem;
   background: rgba(251, 248, 240, 0.88);

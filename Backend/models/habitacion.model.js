@@ -151,3 +151,6 @@ export const findMantenimientos = (habitacion_id) =>
     `SELECT * FROM mantenimiento WHERE habitacion_id = ? ORDER BY fecha_inicio DESC`,
     [habitacion_id]
   );
+
+export const findAllTipos = () =>
+  db.execute('SELECT * FROM tipos_habitacion');

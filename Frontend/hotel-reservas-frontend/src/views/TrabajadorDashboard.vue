@@ -3,11 +3,50 @@
     <!-- Header Section -->
     <header class="dashboard-header">
       <div class="header-content">
-        <div>
+        <div class="header-main">
           <h1 class="text-serif">Panel de Trabajador</h1>
           <p class="text-muted">Gestión de disponibilidad y servicios del hotel</p>
         </div>
         <div class="header-actions">
+          <!-- Botón de Nueva Reserva -->
+          <router-link to="/habitaciones" class="btn-new-reservation">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Nueva Reserva
+          </router-link>
+
+          <!-- Botón de la Campana (Notificaciones) -->
+          <div class="notification-container">
+            <button class="btn-notification" @click="toggleNotificaciones">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span v-if="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
+            </button>
+            
+            <Transition name="slide-fade">
+              <div v-if="mostrarNotificaciones" class="notification-dropdown">
+                <div class="dropdown-header">
+                  <h3>Notificaciones</h3>
+                  <button @click="marcarTodasLeidas" class="btn-clear">Limpiar</button>
+                </div>
+                <div class="dropdown-body">
+                  <div v-for="n in notificaciones" :key="n.id" class="notif-item" :class="{ unread: !n.leida }">
+                    <div class="notif-icon" :class="n.tipo">
+                      <svg v-if="n.tipo === 'reserva'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                      <svg v-else-if="n.tipo === 'limpieza'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                    </div>
+                    <div class="notif-content">
+                      <p class="notif-text">{{ n.mensaje }}</p>
+                      <span class="notif-time">{{ n.tiempo }}</span>
+                    </div>
+                  </div>
+                  <div v-if="notificaciones.length === 0" class="notif-empty">
+                    Sin avisos nuevos
+                  </div>
+                </div>
+              </div>
+            </Transition>
+          </div>
+
           <div class="status-badge">
             <span class="status-dot"></span>
             Sistema en Línea
@@ -84,14 +123,26 @@
           <div class="section-header">
             <h2 class="text-serif">Estado de Habitaciones</h2>
             <div class="filter-tabs">
-              <button class="tab-btn active">Todas</button>
-              <button class="tab-btn">Disponibles</button>
-              <button class="tab-btn">Mantenimiento</button>
+              <button 
+                class="tab-btn" 
+                :class="{ active: filtroEstado === 'todas' }" 
+                @click="filtroEstado = 'todas'"
+              >Todas</button>
+              <button 
+                class="tab-btn" 
+                :class="{ active: filtroEstado === 'disponible' }" 
+                @click="filtroEstado = 'disponible'"
+              >Disponibles</button>
+              <button 
+                class="tab-btn" 
+                :class="{ active: filtroEstado === 'mantenimiento' }" 
+                @click="filtroEstado = 'mantenimiento'"
+              >Mantenimiento</button>
             </div>
           </div>
 
           <div class="rooms-grid">
-            <div v-for="h in habitaciones" :key="h.id" class="room-card animate-slide-up">
+            <div v-for="h in habitacionesFiltradas" :key="h.id" class="room-card animate-slide-up">
               <div class="room-image-placeholder">
                 <span class="room-number">No. {{ h.numero }}</span>
                 <div class="room-badge" :class="h.estado">
@@ -114,6 +165,9 @@
                 </div>
               </div>
             </div>
+            <div v-if="habitacionesFiltradas.length === 0" class="empty-state">
+              <p>No hay habitaciones en este estado.</p>
+            </div>
           </div>
         </main>
       </div>
@@ -123,7 +177,7 @@
 
 <script>
 import api from '../services/api';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useToast } from 'vue-toastification';
 
 export default {
@@ -134,7 +188,25 @@ export default {
     const fechaCheckin = ref('');
     const fechaCheckout = ref('');
     const disponible = ref(null);
+    const filtroEstado = ref('todas');
+    const mostrarNotificaciones = ref(false);
+    const notificaciones = ref([
+      { id: 1, mensaje: 'Nueva reserva online: Habitación 105', tiempo: 'Hace 5 min', tipo: 'reserva', leida: false },
+      { id: 2, mensaje: 'Habitación 202 lista tras mantenimiento', tiempo: 'Hace 15 min', tipo: 'mantenimiento', leida: false },
+      { id: 3, mensaje: 'Limpieza finalizada en Habitación 301', tiempo: 'Hace 1 hora', tipo: 'limpieza', leida: false },
+    ]);
     const toast = useToast();
+
+    const unreadCount = computed(() => notificaciones.value.filter(n => !n.leida).length);
+
+    const toggleNotificaciones = () => {
+      mostrarNotificaciones.value = !mostrarNotificaciones.value;
+    };
+
+    const marcarTodasLeidas = () => {
+      notificaciones.value = [];
+      mostrarNotificaciones.value = false;
+    };
 
     const cargarDatos = async () => {
       try {
@@ -150,6 +222,11 @@ export default {
         toast.error('Error al cargar datos del panel');
       }
     };
+
+    const habitacionesFiltradas = computed(() => {
+      if (filtroEstado.value === 'todas') return habitaciones.value;
+      return habitaciones.value.filter(h => h.estado === filtroEstado.value);
+    });
 
     const consultarDisponibilidad = async () => {
       if (!habitacionSeleccionada.value || !fechaCheckin.value || !fechaCheckout.value) {
@@ -182,6 +259,13 @@ export default {
       fechaCheckin,
       fechaCheckout,
       disponible,
+      filtroEstado,
+      habitacionesFiltradas,
+      mostrarNotificaciones,
+      notificaciones,
+      unreadCount,
+      toggleNotificaciones,
+      marcarTodasLeidas,
       consultarDisponibilidad
     };
   }
@@ -206,7 +290,7 @@ export default {
 /* Header Styles */
 .dashboard-header {
   background: #ffffff;
-  padding: 2rem 5%;
+  padding: 1.5rem 5%;
   border-bottom: 1px solid rgba(44, 62, 45, 0.08);
   position: sticky;
   top: 0;
@@ -221,22 +305,86 @@ export default {
   margin: 0 auto;
 }
 
-.header-content h1 {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.btn-new-reservation {
+  background: #c4a484;
+  color: white;
+  text-decoration: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-new-reservation:hover {
+  background: #b08d6a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(196, 164, 132, 0.3);
+}
+
+.btn-notification {
+  background: #f8f5f0;
+  border: 1px solid rgba(44, 62, 45, 0.1);
+  color: #4a5d4b;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-notification:hover {
+  background: #eef2ef;
+  color: #2c3e2d;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #e53e3e;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.header-main h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.8rem;
   color: #2c3e2d;
 }
 
 .text-muted {
   color: #6a7c6b;
   margin: 0.2rem 0 0 0;
+  font-size: 0.9rem;
 }
 
 .status-badge {
   background: #eef2ef;
-  padding: 0.6rem 1.2rem;
+  padding: 0.6rem 1rem;
   border-radius: 50px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -436,23 +584,27 @@ export default {
 .filter-tabs {
   display: flex;
   gap: 10px;
+  background: #f0ede8;
+  padding: 5px;
+  border-radius: 50px;
 }
 
 .tab-btn {
   background: transparent;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.2rem;
   border-radius: 50px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
   color: #6a7c6b;
 }
 
 .tab-btn.active {
-  background: #2c3e2d;
-  color: white;
+  background: white;
+  color: #2c3e2d;
+  box-shadow: 0 2px 8px rgba(44, 62, 45, 0.1);
 }
 
 /* Room Grid */
@@ -460,6 +612,16 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 20px;
+  border: 2px dashed rgba(44, 62, 45, 0.1);
+  color: #6a7c6b;
 }
 
 .room-card {
@@ -507,6 +669,7 @@ export default {
 .room-badge.ocupada { background: #fff5f5; color: #c53030; }
 .room-badge.mantenimiento { background: #fffaf0; color: #d69e2e; }
 .room-badge.reservada { background: #f0f4ff; color: #3182ce; }
+.room-badge.limpieza { background: #fdf2f8; color: #db2777; }
 
 .room-details {
   padding: 1.5rem;
@@ -590,13 +753,133 @@ export default {
   opacity: 0;
 }
 
+/* Notificaciones Functional */
+.notification-container {
+  position: relative;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  width: 320px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(44, 62, 45, 0.15);
+  border: 1px solid rgba(44, 62, 45, 0.08);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-header {
+  padding: 1.2rem;
+  background: #fdfaf7;
+  border-bottom: 1px solid rgba(44, 62, 45, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-clear {
+  background: transparent;
+  border: none;
+  color: #c4a484;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dropdown-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  display: flex;
+  gap: 12px;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(44, 62, 45, 0.03);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.notif-item:hover {
+  background: #fcfaf7;
+}
+
+.notif-item.unread {
+  background: rgba(196, 164, 132, 0.04);
+}
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notif-icon.reserva { background: #eef2ef; color: #4a5d4b; }
+.notif-icon.mantenimiento { background: #fffaf0; color: #d69e2e; }
+.notif-icon.limpieza { background: #fdf2f8; color: #db2777; }
+
+.notif-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #2c3e2d;
+}
+
+.notif-time {
+  font-size: 0.75rem;
+  color: #6a7c6b;
+  margin-top: 4px;
+  display: block;
+}
+
+.notif-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #6a7c6b;
+  font-size: 0.9rem;
+}
+
+/* Animations */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .grid-layout {
     grid-template-columns: 1fr;
   }
-  .dashboard-header {
-    padding: 1.5rem 5%;
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 </style>

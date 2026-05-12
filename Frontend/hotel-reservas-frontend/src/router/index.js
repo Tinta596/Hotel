@@ -9,6 +9,7 @@ import Reservas from '../views/Reservas.vue';
 import Habitaciones from '../views/Habitaciones.vue';
 import Servicios from '../views/Servicios.vue';
 import AdminDashboard from '../pages/Dashboard.vue';
+import AdminHabitaciones from '../pages/AdminHabitaciones.vue';
 import DetalleHabitacion from '../views/DetalleHabitacion.vue';
 
 const routes = [
@@ -50,6 +51,12 @@ const routes = [
     path: '/admin',
     name: 'AdminDashboard',
     component: AdminDashboard,
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
+    path: '/admin/habitaciones',
+    name: 'AdminHabitaciones',
+    component: AdminHabitaciones,
     meta: { requiresAuth: true, roles: ['admin'] }
   },
   { path: '/dashboard-admin', redirect: '/admin' },

@@ -4,11 +4,19 @@ import { crearReservacionDto, actualizarFechasDto } from '../dtos/reservacion.dt
 
 export const obtenerReservas = async (req, res, next) => {
   try {
-    const reservas = await ReservacionService.listarReservaciones(
-      req.user.rol_nombre, req.user.id
-    );
-    res.json(reservas);
-  } catch (err) { next(err); }
+    const rol = req.user?.rol_nombre || 'cliente';
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuario no identificado' });
+    }
+
+    const reservas = await ReservacionService.listarReservaciones(rol, userId);
+    res.json(reservas || []);
+  } catch (err) {
+    console.error('[ReservasController] Error en obtenerReservas:', err);
+    next(err);
+  }
 };
 
 export const crearReserva = async (req, res, next) => {

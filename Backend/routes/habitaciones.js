@@ -33,6 +33,12 @@ router.get('/verificar-disponibilidad',
   HabitacionController.verificarDisponibilidad
 );
 
+// GET /api/habitaciones/tipos
+router.get('/tipos',
+  authenticateToken,
+  HabitacionController.listarTipos
+);
+
 // GET /api/habitaciones/:id
 router.get('/:id',
   authenticateToken,

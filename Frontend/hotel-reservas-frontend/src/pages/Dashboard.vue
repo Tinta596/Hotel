@@ -1,161 +1,124 @@
 <template>
   <MainLayout title="Dashboard">
     <div class="dashboard">
+      <!-- Header / Hero Section -->
       <section class="dashboard__hero">
-        <div>
-          <Badge variant="info" dot>Operacion hotelera</Badge>
-          <h1>Panel administrativo</h1>
-          <p>Vista ejecutiva de reservas, ocupacion, habitaciones y actividad reciente.</p>
-        </div>
-        <div class="dashboard__hero-actions">
-          <Button variant="outline">
-            <template #icon><Download :size="17" /></template>
-            Exportar
-          </Button>
-          <Button>
-            <template #icon><CalendarPlus :size="17" /></template>
-            Nueva reserva
-          </Button>
-        </div>
-      </section>
-
-      <section class="dashboard__stats">
-        <StatCard
-          :icon="CalendarCheck"
-          title="Total reservas"
-          :value="reservas.length"
-          subtitle="Reservas registradas"
-          trend="+12% mensual"
-          trend-variant="success"
-        />
-        <StatCard
-          :icon="BedDouble"
-          title="Habitaciones disponibles"
-          :value="habitacionesDisponibles"
-          subtitle="Listas para venta"
-          trend="Inventario sano"
-          trend-variant="info"
-        />
-        <StatCard
-          :icon="UsersRound"
-          title="Usuarios activos"
-          :value="usuarios.length"
-          subtitle="Perfiles en el sistema"
-          trend="Equipo activo"
-          trend-variant="neutral"
-        />
-        <StatCard
-          :icon="WalletCards"
-          title="Ingresos estimados"
-          :value="currency(totalIngresos)"
-          subtitle="Segun reservas cargadas"
-          trend="+8.4%"
-          trend-variant="success"
-        />
-      </section>
-
-      <section class="dashboard__grid">
-        <Card title="Reservas recientes" description="Ultimos movimientos confirmados" hover>
-          <div class="reservation-list">
-            <div v-if="cargando" class="dashboard__empty">Cargando reservas...</div>
-            <div v-else-if="reservasRecientes.length === 0" class="dashboard__empty">No hay reservas recientes.</div>
-            <article v-for="reserva in reservasRecientes" v-else :key="reserva.id" class="reservation-row">
-              <div class="reservation-row__main">
-                <strong>#{{ reserva.id }} · Habitacion {{ reserva.habitacion_id }}</strong>
-                <span>{{ formatDate(reserva.fecha_checkin) }} - {{ formatDate(reserva.fecha_checkout) }}</span>
-              </div>
-              <div class="reservation-row__meta">
-                <Badge :variant="reservationVariant(reserva.estado)" dot>
-                  {{ reserva.estado || 'confirmada' }}
-                </Badge>
-                <strong>{{ currency(reserva.precio_total) }}</strong>
-              </div>
-            </article>
+        <div class="hero-content">
+          <div class="badge-wrapper">
+            <span class="status-badge">Operación Hotelera</span>
           </div>
-        </Card>
-
-        <Card title="Habitaciones disponibles" description="Inventario operativo" hover>
-          <div class="room-grid">
-            <article v-if="cargando" class="dashboard__empty">Cargando habitaciones...</article>
-            <article v-for="habitacion in habitacionesDestacadas" v-else :key="habitacion.id" class="room-item">
-              <div>
-                <strong>Habitacion {{ habitacion.numero }}</strong>
-                <span>{{ habitacion.tipo_nombre || habitacion.tipo || 'Suite hotelera' }}</span>
-              </div>
-              <Badge :variant="roomVariant(habitacion.estado)" dot>{{ habitacion.estado || 'disponible' }}</Badge>
-            </article>
-          </div>
-        </Card>
+          <h1>Panel Administrativo</h1>
+          <p>Vista ejecutiva de reservas, ocupación, habitaciones y actividad reciente del hotel.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn-secondary" @click="cargarDatos">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
+            Sincronizar
+          </button>
+          <router-link to="/admin/habitaciones" class="btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            Gestionar Habitaciones
+          </router-link>
+        </div>
       </section>
 
-      <section class="dashboard__bottom">
-        <Card title="Actividad reciente" description="Senales clave del sistema" hover>
-          <div class="activity-list">
-            <div v-for="item in actividad" :key="item.title" class="activity-item">
-              <div class="activity-item__icon">
-                <component :is="item.icon" :size="17" />
+      <!-- Stats Grid -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon res">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Total Reservas</span>
+            <h2 class="stat-value">{{ reservas.length }}</h2>
+            <span class="stat-trend success">Reservas registradas</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon hab">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"></path><path d="M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"></path><path d="M3 18h18"></path></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Hab. Disponibles</span>
+            <h2 class="stat-value">{{ habitacionesDisponibles }}</h2>
+            <span class="stat-trend info">Listas para venta</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon user">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Usuarios Activos</span>
+            <h2 class="stat-value">{{ usuarios.length }}</h2>
+            <span class="stat-trend success">Equipo en línea</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon money">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Ingresos Estimados</span>
+            <h2 class="stat-value">{{ currency(totalIngresos) }}</h2>
+            <span class="stat-trend success">Ventas confirmadas</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Content Grid -->
+      <div class="dashboard-grid">
+        <!-- Reservas Recientes -->
+        <div class="grid-card">
+          <div class="card-header">
+            <h3>Reservas Recientes</h3>
+            <router-link to="/reservas" class="view-all">Ver todas</router-link>
+          </div>
+          <div class="card-body">
+            <div v-if="cargando" class="loading-state">Cargando...</div>
+            <div v-else-if="reservasRecientes.length === 0" class="empty-state">No hay reservas recientes</div>
+            <div v-else class="data-list">
+              <div v-for="res in reservasRecientes" :key="res.id" class="data-item">
+                <div class="item-info">
+                  <strong>Habitación {{ res.habitacion_numero }}</strong>
+                  <span>Ref: {{ res.numero_confirmacion }}</span>
+                </div>
+                <div class="item-meta">
+                  <span class="badge" :class="res.estado">{{ res.estado }}</span>
+                  <span class="price">{{ currency(res.total_estimado) }}</span>
+                </div>
               </div>
-              <div>
-                <strong>{{ item.title }}</strong>
-                <span>{{ item.description }}</span>
-              </div>
-              <Badge :variant="item.variant">{{ item.label }}</Badge>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card title="Acciones rapidas" description="Flujos frecuentes del equipo" hover>
-          <div class="quick-actions">
-            <Button variant="primary" to="/reservas">
-              <template #icon><CalendarCheck :size="17" /></template>
-              Gestionar reservas
-            </Button>
-            <Button variant="outline" to="/habitaciones">
-              <template #icon><BedDouble :size="17" /></template>
-              Ver habitaciones
-            </Button>
-            <Button variant="secondary" to="/servicios">
-              <template #icon><ConciergeBell :size="17" /></template>
-              Servicios
-            </Button>
-            <Button variant="outline" to="/register/trabajador">
-              <template #icon><UsersRound :size="17" /></template>
-              Registrar trabajador
-            </Button>
-            <Button variant="outline" to="/register/admin">
-              <template #icon><ShieldPlus :size="17" /></template>
-              Registrar admin
-            </Button>
-            <Button variant="danger" :loading="cargando" @click="cargarDatos">
-              <template #icon><RefreshCw :size="17" /></template>
-              Sincronizar datos
-            </Button>
+        <!-- Inventario de Habitaciones -->
+        <div class="grid-card">
+          <div class="card-header">
+            <h3>Estado Habitaciones</h3>
+            <router-link to="/habitaciones" class="view-all">Ver todas</router-link>
           </div>
-        </Card>
-      </section>
+          <div class="card-body">
+            <div v-if="cargando" class="loading-state">Cargando...</div>
+            <div v-else class="room-grid">
+              <div v-for="hab in habitacionesDestacadas" :key="hab.id" class="room-pill">
+                <span class="room-num">{{ hab.numero }}</span>
+                <span class="room-status" :class="hab.estado"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </MainLayout>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import {
-  BedDouble,
-  CalendarCheck,
-  CalendarPlus,
-  ConciergeBell,
-  Download,
-  RefreshCw,
-  ShieldPlus,
-  Sparkles,
-  UsersRound,
-  WalletCards
-} from 'lucide-vue-next';
 import MainLayout from '../components/layout/MainLayout.vue';
-import StatCard from '../components/dashboard/StatCard.vue';
-import Card from '../components/common/Card.vue';
-import Badge from '../components/common/Badge.vue';
-import Button from '../components/common/Button.vue';
 import api from '../services/api';
 
 const cargando = ref(false);
@@ -164,55 +127,30 @@ const habitaciones = ref([]);
 const usuarios = ref([]);
 
 const habitacionesDisponibles = computed(() =>
-  habitaciones.value.filter(habitacion => (habitacion.estado || '').toLowerCase() === 'disponible').length
+  habitaciones.value.filter(h => (h.estado || '').toLowerCase() === 'disponible').length
 );
 
 const totalIngresos = computed(() =>
-  reservas.value.reduce((total, reserva) => total + Number(reserva.precio_total || 0), 0)
+  reservas.value.reduce((total, res) => total + Number(res.total_estimado || 0), 0)
 );
 
 const reservasRecientes = computed(() => reservas.value.slice(0, 5));
-const habitacionesDestacadas = computed(() => habitaciones.value.slice(0, 6));
-
-const actividad = computed(() => [
-  {
-    icon: CalendarPlus,
-    title: `${reservas.value.length} reservas monitoreadas`,
-    description: 'Seguimiento centralizado de ocupacion y fechas.',
-    variant: 'info',
-    label: 'Reservas'
-  },
-  {
-    icon: BedDouble,
-    title: `${habitacionesDisponibles.value} habitaciones listas`,
-    description: 'Inventario disponible para nuevas ventas.',
-    variant: habitacionesDisponibles.value > 0 ? 'success' : 'warning',
-    label: 'Inventario'
-  },
-  {
-    icon: Sparkles,
-    title: 'Experiencia premium activa',
-    description: 'Interfaz limpia para operacion administrativa diaria.',
-    variant: 'neutral',
-    label: 'SaaS'
-  }
-]);
+const habitacionesDestacadas = computed(() => habitaciones.value.slice(0, 15));
 
 const cargarDatos = async () => {
   cargando.value = true;
-
   try {
-    const [reservasResponse, habitacionesResponse, usuariosResponse] = await Promise.all([
+    const [resRes, habRes, usuRes] = await Promise.all([
       api.get('/reservas'),
       api.get('/habitaciones'),
       api.get('/usuarios')
     ]);
 
-    reservas.value = Array.isArray(reservasResponse.data) ? reservasResponse.data : [];
-    habitaciones.value = Array.isArray(habitacionesResponse.data) ? habitacionesResponse.data : [];
-    usuarios.value = Array.isArray(usuariosResponse.data) ? usuariosResponse.data : [];
+    reservas.value = Array.isArray(resRes.data) ? resRes.data : [];
+    habitaciones.value = Array.isArray(habRes.data) ? habRes.data : [];
+    usuarios.value = Array.isArray(usuRes.data) ? usuRes.data : [];
   } catch (error) {
-    console.error(error);
+    console.error('Error al cargar datos dashboard:', error);
     reservas.value = [];
     habitaciones.value = [];
     usuarios.value = [];
@@ -228,208 +166,240 @@ const currency = value =>
     maximumFractionDigits: 0
   }).format(Number(value || 0));
 
-const formatDate = value => {
-  if (!value) return 'Sin fecha';
-  return new Intl.DateTimeFormat('es-CO', { month: 'short', day: '2-digit' }).format(new Date(value));
-};
-
-const reservationVariant = estado => {
-  const status = (estado || 'confirmada').toLowerCase();
-  if (['confirmada', 'activa', 'pagada'].includes(status)) return 'success';
-  if (['pendiente', 'proceso'].includes(status)) return 'warning';
-  if (['cancelada', 'rechazada'].includes(status)) return 'danger';
-  return 'info';
-};
-
-const roomVariant = estado => {
-  const status = (estado || 'disponible').toLowerCase();
-  if (status === 'disponible') return 'success';
-  if (status === 'mantenimiento') return 'warning';
-  if (status === 'ocupada') return 'danger';
-  return 'neutral';
-};
-
 onMounted(cargarDatos);
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;600;700&display=swap');
+
 .dashboard {
-  display: grid;
-  gap: 1.35rem;
-  animation: fadeIn 360ms ease both;
+  font-family: 'Outfit', sans-serif;
+  color: #2c3e2d;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding-bottom: 3rem;
 }
 
-.dashboard__hero,
-.dashboard__stats,
-.dashboard__grid,
-.dashboard__bottom {
-  display: grid;
-  gap: 1rem;
-}
-
+/* Hero Section */
 .dashboard__hero {
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  padding: 0.45rem 0 0.8rem;
-}
-
-.dashboard__hero h1 {
-  margin: 0.8rem 0 0.35rem;
-  color: var(--color-ink);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 900;
-  line-height: 1.02;
-}
-
-.dashboard__hero p {
-  max-width: 44rem;
-  margin: 0;
-  color: var(--color-muted);
-  font-size: 1rem;
-  line-height: 1.65;
-}
-
-.dashboard__hero-actions {
   display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.dashboard__stats {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.dashboard__grid {
-  grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.85fr);
-}
-
-.dashboard__bottom {
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.7fr);
-}
-
-.reservation-list,
-.room-grid,
-.activity-list,
-.quick-actions {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.reservation-row,
-.room-item,
-.activity-item {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.9rem;
-  background: rgba(244, 239, 229, 0.72);
-  border: 1px solid rgba(222, 213, 196, 0.72);
-  border-radius: 0.9rem;
-  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+  align-items: flex-end;
+  padding: 1rem 0;
 }
 
-.reservation-row:hover,
-.room-item:hover,
-.activity-item:hover {
-  transform: translateY(-2px);
-  background: var(--color-card);
-  border-color: var(--color-sage);
+.hero-content h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0.5rem 0;
+  color: #1a1a1a;
 }
 
-.reservation-row__main,
-.room-item > div,
-.activity-item > div:not(.activity-item__icon) {
-  display: grid;
-  gap: 0.22rem;
+.hero-content p {
+  font-size: 1.1rem;
+  color: #6a7c6b;
+  max-width: 600px;
 }
 
-.reservation-row strong,
-.room-item strong,
-.activity-item strong {
-  color: var(--color-ink);
-  font-size: 0.92rem;
+.status-badge {
+  background: rgba(74, 93, 75, 0.1);
+  color: #4a5d4b;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.reservation-row span,
-.room-item span,
-.activity-item span {
-  color: var(--color-muted);
-  font-size: 0.82rem;
+.hero-actions {
+  display: flex;
+  gap: 12px;
 }
 
-.reservation-row__meta {
+.btn-primary, .btn-secondary {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
 }
 
-.activity-item {
-  justify-content: start;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+.btn-primary {
+  background: #4a5d4b;
+  color: white;
+  text-decoration: none;
 }
 
-.activity-item__icon {
+.btn-secondary {
+  background: white;
+  color: #4a5d4b;
+  border: 1px solid rgba(74, 93, 75, 0.2);
+}
+
+.btn-primary:hover { background: #3d4d3e; transform: translateY(-2px); }
+.btn-secondary:hover { background: #fdfaf7; transform: translateY(-2px); }
+
+/* Stats Cards */
+.stats-grid {
   display: grid;
-  place-items: center;
-  width: 2.35rem;
-  height: 2.35rem;
-  color: var(--color-olive-dark);
-  background: var(--color-sage-soft);
-  border-radius: 0.8rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
 }
 
-.quick-actions {
-  grid-template-columns: 1fr;
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  box-shadow: 0 10px 30px rgba(44, 62, 45, 0.05);
+  border: 1px solid rgba(44, 62, 45, 0.03);
 }
 
-.dashboard__empty {
-  padding: 1.25rem;
-  color: var(--color-muted);
-  background: rgba(244, 239, 229, 0.72);
-  border: 1px dashed #b9ad96;
-  border-radius: 0.9rem;
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.res { background: #f0ede8; color: #4a5d4b; }
+.stat-icon.hab { background: #eef2ef; color: #4a5d4b; }
+.stat-icon.user { background: #fdfaf7; color: #c4a484; }
+.stat-icon.money { background: #f0f7f1; color: #2e7d32; }
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6a7c6b;
+  display: block;
+}
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  margin: 2px 0;
+}
+
+.stat-trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.stat-trend.success { color: #2e7d32; }
+.stat-trend.info { color: #4a5d4b; }
+
+/* Content Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1.5rem;
+}
+
+.grid-card {
+  background: white;
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 40px rgba(44, 62, 45, 0.04);
+  border: 1px solid rgba(44, 62, 45, 0.02);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.card-header h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.view-all {
+  color: #c4a484;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.data-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #fdfaf7;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.data-item:hover { transform: scale(1.01); background: #f9f6f1; }
+
+.item-info { display: flex; flex-direction: column; }
+.item-info strong { font-size: 0.95rem; }
+.item-info span { font-size: 0.8rem; color: #6a7c6b; }
+
+.item-meta { display: flex; align-items: center; gap: 15px; }
+.price { font-weight: 700; color: #4a5d4b; }
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
+  text-transform: uppercase;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
+.badge.confirmada { background: #eef2ef; color: #4a5d4b; }
+.badge.pendiente { background: #fffaf0; color: #d69e2e; }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Room Grid */
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
 }
 
-@media (max-width: 1180px) {
-  .dashboard__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dashboard__grid,
-  .dashboard__bottom {
-    grid-template-columns: 1fr;
-  }
+.room-pill {
+  background: #fdfaf7;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
-@media (max-width: 720px) {
-  .dashboard__hero {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
+.room-num { font-weight: 700; font-size: 0.9rem; }
+.room-status { width: 8px; height: 8px; border-radius: 50%; }
+.room-status.disponible { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
+.room-status.ocupada { background: #f44336; }
+.room-status.mantenimiento { background: #ff9800; }
 
-  .dashboard__hero-actions,
-  .reservation-row,
-  .reservation-row__meta {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .dashboard__stats {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-grid { grid-template-columns: 1fr; }
 }
-</style>
+
+@media (max-width: 768px) {
+  .hero-actions { display: none; }
+  .hero-content h1 { font-size: 2.5rem; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+</style>>

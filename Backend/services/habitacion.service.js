@@ -103,3 +103,8 @@ export const listarMantenimientos = async (habitacion_id) => {
   const [rows] = await HabitacionModel.findMantenimientos(habitacion_id);
   return rows;
 };
+
+export const listarTipos = async () => {
+  const [rows] = await HabitacionModel.findAllTipos();
+  return rows;
+};

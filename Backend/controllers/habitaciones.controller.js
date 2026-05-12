@@ -109,3 +109,10 @@ export const listarMantenimientos = async (req, res, next) => {
     res.json(mantenimientos);
   } catch (err) { next(err); }
 };
+
+export const listarTipos = async (req, res, next) => {
+  try {
+    const tipos = await HabitacionService.listarTipos();
+    res.json(tipos);
+  } catch (err) { next(err); }
+};
