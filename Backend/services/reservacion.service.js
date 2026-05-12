@@ -20,19 +20,19 @@ export const listarReservaciones = async (rol, usuario_id) => {
 };
 
 export const crearReservacion = async (data, usuario) => {
-    const usuario_id = usuario.rol_nombre === 'admin' && data.usuario_id
+    const final_usuario_id = (usuario.rol_nombre === 'admin' || usuario.rol_nombre === 'trabajador') && data.usuario_id
       ? data.usuario_id
-      : usuario_id;
+      : usuario.id;
 
     const disponible = await ReservacionModel.verificarDisponibilidadSP(
-        data.habitacion_id, fecha_checkin, fecha_checkout
+        data.habitacion_id, data.fecha_checkin, data.fecha_checkout
     );
 
     if (!disponible){
-        throw new Error(409, 'La habitación no está disponible para esas fechas');
+        throw { status: 409, message: 'La habitación no está disponible para esas fechas' };
     }
 
-    const [result] = await ReservacionModel.insert({ ...data, usuario_id});
+    const [result] = await ReservacionModel.insert({ ...data, usuario_id: final_usuario_id});
     const [[reserva]] = await ReservacionModel.findById(result.insertId);
     return reserva;
 };
@@ -91,4 +91,13 @@ export const actualizarPrecio = async (id, precio_base) => {
   const [[habitacion]] = await ReservacionModel.findTipoHabitacionByHabitacionId(id);
   if (!habitacion) throw { status: 404, message: 'Habitación no encontrada' };
   await ReservacionModel.updatePrecioHabitacion(habitacion.tipo_habitacion_id, precio_base);
+};
+
+export const obtenerHabitaciones = async (req, res) => {
+  try {
+    const habitaciones = await Habitacion.findAll();
+    res.json(habitaciones);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

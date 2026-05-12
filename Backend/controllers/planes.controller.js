@@ -1,5 +1,5 @@
-import * as PlanService from '../services/plan.service.js';
-import { crearPlanDto, actualizarPlanDto } from '../dtos/plan.dto.js';
+import * as PlanService from '../services/planes.service.js';
+import { crearPlanDto, actualizarPlanDto } from '../dtos/plan.dtos.js';
 
 export const listar = async (req, res, next) => {
   try {

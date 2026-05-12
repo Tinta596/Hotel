@@ -30,6 +30,21 @@ export default createStore({
 
       commit('setToken', token);
       commit('setUsuario', user);
+      return { token, user };
+    },
+    async register({ commit }, payload) {
+      const res = await api.post('/auth/register', payload);
+      const { token, user } = res.data;
+
+      if (token && user) {
+        commit('setToken', token);
+        commit('setUsuario', user);
+      }
+
+      return { token, user, message: res.data.message };
+    },
+    logout({ commit }) {
+      commit('logout');
     }
   }
 });

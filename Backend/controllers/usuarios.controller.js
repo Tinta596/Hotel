@@ -4,11 +4,11 @@ export async function obtenerUsuarios(req, res, next) {
     try {
         console.log('📥 Obteniendo usuarios...');
         const [usuarios] = await db.execute(`
-            SELECT u.id, u.nombre, u.email, u.telefono, u.direccion, u.activo, u.created_at,
-                   r.nombre as rol
-            FROM usuarios u
-            JOIN roles r ON u.rol_id = r.id
-            ORDER BY u.created_at DESC
+            SELECT id, nombre, email, activo, creado_en,
+                   CASE WHEN rol = 'recepcionista' THEN 'trabajador' ELSE rol END AS rol
+            FROM usuarios
+            WHERE eliminado_en IS NULL
+            ORDER BY creado_en DESC
         `);
         console.log('✅ Usuarios obtenidos:', usuarios);
         res.json(usuarios);

@@ -1,6 +1,6 @@
 // controllers/reservacion.controller.js
 import * as ReservacionService from '../services/reservacion.service.js';
-import { crearReservacionDto, actualizarFechasDto } from '../dtos/reservacion.dto.js';
+import { crearReservacionDto, actualizarFechasDto } from '../dtos/reservacion.dtos.js';
 
 export const obtenerReservas = async (req, res, next) => {
   try {
@@ -63,6 +63,16 @@ export const obtenerHabitacionesDisponibles = async (req, res, next) => {
     res.json(habitaciones);
   } catch (err) { next(err); }
 };
+
+export const obtenerHabitaciones = async (req, res, next) => {
+  try{
+    const habitaciones = await ReservacionService.listarHabitacionesDisponibles();
+    res.json(habitaciones);
+  }
+  catch (error){
+    next(error);
+  }
+}
 
 export const obtenerHabitacionPorId = async (req, res, next) => {
   try {

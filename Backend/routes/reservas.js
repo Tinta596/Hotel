@@ -1,8 +1,7 @@
 // routes/reservacion.routes.js
 import { Router } from 'express';
 import * as ReservacionController from '../controllers/reservacion.controller.js';
-import { verifyToken }  from '../middlewares/auth.middleware.js';
-import { verifyRol }    from '../middlewares/roles.middleware.js';
+import { authenticateToken, requireRole } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -15,8 +14,8 @@ const router = Router();
 // → Todas las habitaciones (admin y trabajador)
 router.get(
   '/',
-  verifyToken,
-  verifyRol('admin', 'trabajador'),
+  authenticateToken,
+  requireRole(['admin', 'trabajador']),
   ReservacionController.obtenerHabitaciones  // ← necesitas agregar este también al controller
 );
 
@@ -24,7 +23,7 @@ router.get(
 // → Habitaciones con estado = 'disponible'
 router.get(
   '/disponibles',
-  verifyToken,
+  authenticateToken,
   ReservacionController.obtenerHabitacionesDisponibles
 );
 
@@ -32,7 +31,7 @@ router.get(
 // → Verifica si una habitación está libre en esas fechas
 router.get(
   '/disponibilidad',
-  verifyToken,
+  authenticateToken,
   ReservacionController.verificarDisponibilidad
 );
 
@@ -40,7 +39,7 @@ router.get(
 // → Detalle de una habitación
 router.get(
   '/:id',
-  verifyToken,
+  authenticateToken,
   ReservacionController.obtenerHabitacionPorId
 );
 
@@ -48,8 +47,8 @@ router.get(
 // → Solo admin puede cambiar el precio
 router.patch(
   '/:id/precio',
-  verifyToken,
-  verifyRol('admin'),
+  authenticateToken,
+  requireRole(['admin']),
   ReservacionController.actualizarPrecioHabitacion
 );
 
@@ -59,45 +58,45 @@ router.patch(
 //  Prefijo: /api/reservaciones
 // ============================================================
 
-// GET /api/reservaciones
+// GET /api/reservas
 // → Admin ve todas, trabajador ve activas, cliente ve las suyas
 router.get(
-  '/reservaciones',
-  verifyToken,
+  '/',
+  authenticateToken,
   ReservacionController.obtenerReservas
 );
 
-// POST /api/reservaciones
+// POST /api/reservas/reservar
 // → Crear una reservación
 router.post(
-  '/reservaciones',
-  verifyToken,
+  '/reservar',
+  authenticateToken,
   ReservacionController.crearReserva
 );
 
-// PATCH /api/reservaciones/:id/estado
+// PATCH /api/reservas/:id/estado
 // → Cambiar estado de una reservación (admin y trabajador)
 router.patch(
-  '/reservaciones/:id/estado',
-  verifyToken,
-  verifyRol('admin', 'trabajador'),
+  '/:id/estado',
+  authenticateToken,
+  requireRole(['admin', 'trabajador']),
   ReservacionController.actualizarEstadoReserva
 );
 
-// PATCH /api/reservaciones/:id/fechas
+// PATCH /api/reservas/:id/fechas
 // → Actualizar fechas de una reservación
 router.patch(
-  '/reservaciones/:id/fechas',
-  verifyToken,
-  verifyRol('admin'),
+  '/:id/fechas',
+  authenticateToken,
+  requireRole(['admin']),
   ReservacionController.actualizarFechasReserva
 );
 
-// DELETE /api/reservaciones/:id
+// DELETE /api/reservas/:id
 // → Cancelar reservación
 router.delete(
-  '/reservaciones/:id',
-  verifyToken,
+  '/:id',
+  authenticateToken,
   ReservacionController.cancelarReserva
 );
 

@@ -3,16 +3,31 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
+import RegisterAdmin from '../views/RegisterAdmin.vue';
+import RegisterWorker from '../views/RegisterWorker.vue';
 import Reservas from '../views/Reservas.vue';
 import Habitaciones from '../views/Habitaciones.vue';
 import Servicios from '../views/Servicios.vue';
-import AdminDashboard from '../views/AdminDashboard.vue';
+import AdminDashboard from '../pages/Dashboard.vue';
 import DetalleHabitacion from '../views/DetalleHabitacion.vue';
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
-  { path: '/login', name: 'Login', component: Login },
-  { path: '/register', name: 'Register', component: Register },
+  { path: '/home', redirect: '/' },
+  { path: '/login', name: 'Login', component: Login, meta: { guestOnly: true } },
+  { path: '/register', name: 'Register', component: Register, meta: { guestOnly: true } },
+  {
+    path: '/register/trabajador',
+    name: 'RegisterWorker',
+    component: RegisterWorker,
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
+    path: '/register/admin',
+    name: 'RegisterAdmin',
+    component: RegisterAdmin,
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
   {
     path: '/habitaciones',
     name: 'Habitaciones',
@@ -37,6 +52,7 @@ const routes = [
     component: AdminDashboard,
     meta: { requiresAuth: true, roles: ['admin'] }
   },
+  { path: '/dashboard-admin', redirect: '/admin' },
   {
     path: '/dashboard-trabajador',
     name: 'DashboardTrabajador',
@@ -62,26 +78,38 @@ const router = createRouter({
   routes
 });
 
-// ✅ Middleware global de navegación
-router.beforeEach((to, from, next) => {
+const getSession = () => {
   const token = localStorage.getItem('token');
-  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  let usuario = null;
 
-  // 🔐 Rutas que requieren autenticación
+  try {
+    usuario = JSON.parse(localStorage.getItem('usuario'));
+  } catch (error) {
+    localStorage.removeItem('usuario');
+  }
+
+  return { token, usuario };
+};
+
+const routeByRole = usuario => {
+  if (usuario?.rol === 'admin') return '/admin';
+  if (usuario?.rol === 'trabajador') return '/dashboard-trabajador';
+  return '/';
+};
+
+router.beforeEach((to, from, next) => {
+  const { token, usuario } = getSession();
+
   if (to.meta.requiresAuth && (!token || !usuario)) {
-    return next('/login');
+    return next({ path: '/login', query: { redirect: to.fullPath } });
   }
 
-  // 🔐 Rutas que requieren rol específico
   if (to.meta.roles && (!usuario || !to.meta.roles.includes(usuario.rol))) {
-    return next('/');
+    return next(routeByRole(usuario));
   }
 
-  // 🚫 Evitar que usuarios logueados entren a login/register
-  if ((to.path === '/login' || to.path === '/register') && token && usuario) {
-    if (usuario.rol === 'admin') return next('/admin');
-    if (usuario.rol === 'trabajador') return next('/dashboard-trabajador');
-    return next('/');
+  if (to.meta.guestOnly && token && usuario) {
+    return next(routeByRole(usuario));
   }
 
   next();

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 const router = Router();
-import { obtenerUsuarios, cambiarEstadoUsuario } from '../controllers/usuarios.js';
-import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { obtenerUsuarios, cambiarEstadoUsuario } from '../controllers/usuarios.controller.js';
+import { authenticateToken, requireRole } from '../middleware/auth.middleware.js';
 import authorizeAdmin from '../middleware/authorizeAdmin.js';
 
-// Protección global para todo el router
+// Protección global para TODO el router
 router.use(authenticateToken, authorizeAdmin);
 
 // Obtener todos los usuarios

@@ -1,5 +1,5 @@
 import * as ServicioService from '../services/servicio.service.js';
-import { crearServicioDto, actualizarServicioDto } from '../dtos/servicio.dto.js';
+import { crearServicioDto, actualizarServicioDto } from '../dtos/servicio.dtos.js';
 
 export const listar = async (req, res, next) => {
   try {

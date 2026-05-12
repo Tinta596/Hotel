@@ -1,70 +1,85 @@
 <template>
-  <div class="home-container text-center">
-    <img :src="logoUrl" alt="Logo Hotel" class="logo" />
+  <div class="home-page">
 
-    <h1 class="titulo">Bienvenido al Sistema de Reservas del Hotel</h1>
-    <p class="lead subtitulo">Gestiona habitaciones, reservas y servicios desde una sola interfaz.</p>
+    <!-- Hero section -->
+    <section class="home-hero">
+      <div class="home-hero__content">
+        <div class="home-hero__badge">
+          <span class="home-hero__dot"></span>
+          Sistema de Reservas
+        </div>
+        <h1 class="home-hero__title">
+          Bienvenido al<br />
+          <em>Hotel Reservas</em>
+        </h1>
+        <p class="home-hero__sub">
+          Gestiona habitaciones, reservas y servicios desde una sola interfaz elegante y eficiente.
+        </p>
 
-    <div v-if="usuario" class="user-info">
-      <p>👤 Sesión iniciada como <strong>{{ usuario.nombre }}</strong> ({{ usuario.rol }})</p>
-    </div>
-
-    <!-- Enlaces de navegación -->
-    <div class="nav-links">
-      <router-link class="btn btn-habitaciones" to="/habitaciones">🏨 Habitaciones</router-link>
-      <router-link class="btn btn-reservas" to="/reservas">📅 Reservas</router-link>
-      <router-link class="btn btn-servicios" to="/servicios">🛎️ Servicios</router-link>
-    </div>
-
-    <!-- Misión y Visión desplegables -->
-    <section class="mt-5">
-      <h3 class="mb-4">🌟 Misión y Visión</h3>
-      <div class="accordion" id="accordionMisionVision">
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingMision">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMision" aria-expanded="true" aria-controls="collapseMision">
-              🌟 Nuestra Misión
-            </button>
-          </h2>
-          <div id="collapseMision" class="accordion-collapse collapse show" aria-labelledby="headingMision" data-bs-parent="#accordionMisionVision">
-            <div class="accordion-body">
-              Brindar a nuestros huéspedes una experiencia inolvidable combinando hospitalidad cálida, atención personalizada y el uso de tecnología moderna que permita realizar reservas de manera fácil, rápida y segura. Nos esforzamos por ofrecer un servicio de calidad que supere las expectativas y cree vínculos duraderos con cada visitante.
-            </div>
+        <div v-if="usuario" class="home-hero__user">
+          <div class="home-hero__avatar">{{ initials }}</div>
+          <div>
+            <p class="home-hero__user-name">{{ usuario.nombre }}</p>
+            <p class="home-hero__user-role">{{ usuario.rol }}</p>
           </div>
         </div>
 
-        <div class="accordion-item mt-3">
-          <h2 class="accordion-header" id="headingVision">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVision" aria-expanded="false" aria-controls="collapseVision">
-              🚀 Nuestra Visión
-            </button>
-          </h2>
-          <div id="collapseVision" class="accordion-collapse collapse" aria-labelledby="headingVision" data-bs-parent="#accordionMisionVision">
-            <div class="accordion-body">
-              Ser reconocidos a nivel nacional como el hotel líder en innovación tecnológica aplicada a la experiencia del huésped, integrando soluciones digitales que transformen la forma en que las personas interactúan con nuestros servicios. Buscamos posicionarnos como referentes en eficiencia operativa, sostenibilidad y excelencia en el servicio.
-            </div>
-          </div>
+        <div class="home-hero__actions">
+          <router-link class="home-btn home-btn--primary" to="/habitaciones">🏨 Habitaciones</router-link>
+          <router-link class="home-btn home-btn--outline" to="/reservas">📅 Mis Reservas</router-link>
+          <router-link class="home-btn home-btn--outline" to="/servicios">🛎️ Servicios</router-link>
+        </div>
+      </div>
+
+      <div class="home-hero__img-wrap">
+        <img src="/Hotel1.jpg" alt="Hotel" class="home-hero__img" />
+        <div class="home-hero__img-glow"></div>
+      </div>
+    </section>
+
+    <!-- Features row -->
+    <section class="home-features">
+      <div
+        v-for="feat in features"
+        :key="feat.title"
+        class="home-feature-card"
+      >
+        <span class="home-feature-card__icon">{{ feat.icon }}</span>
+        <h3 class="home-feature-card__title">{{ feat.title }}</h3>
+        <p class="home-feature-card__desc">{{ feat.desc }}</p>
+      </div>
+    </section>
+
+    <!-- Mission & Vision -->
+    <section class="home-mvision">
+      <div class="home-mvision__item">
+        <span class="home-mvision__icon">🌟</span>
+        <div>
+          <h3 class="home-mvision__title">Nuestra Misión</h3>
+          <p class="home-mvision__text">
+            Brindar a nuestros huéspedes una experiencia inolvidable combinando hospitalidad
+            cálida, atención personalizada y tecnología moderna que permita realizar reservas
+            de manera fácil, rápida y segura.
+          </p>
+        </div>
+      </div>
+      <div class="home-mvision__item">
+        <span class="home-mvision__icon">🚀</span>
+        <div>
+          <h3 class="home-mvision__title">Nuestra Visión</h3>
+          <p class="home-mvision__text">
+            Ser reconocidos a nivel nacional como el hotel líder en innovación tecnológica
+            aplicada a la experiencia del huésped, integrando soluciones digitales que
+            transformen la forma en que las personas interactúan con nuestros servicios.
+          </p>
         </div>
       </div>
     </section>
 
-
-    <!-- Características -->
-    <section class="info-section">
-      <h3>🛏️ Características de nuestras habitaciones</h3>
-      <ul class="list-unstyled">
-        <li>✔️ Wi-Fi gratuito y de alta velocidad</li>
-        <li>✔️ Televisión por cable y aire acondicionado</li>
-        <li>✔️ Servicio a la habitación disponible</li>
-        <li>✔️ Habitaciones con vista al mar y terraza privada</li>
-        <li>✔️ Caja fuerte y minibar</li>
-      </ul>
-    </section>
-
-    <!-- Testimonio -->
-    <blockquote class="testimonio">
-      <p>"Una experiencia excelente, fácil de reservar y excelente atención".</p>
-      <footer class="blockquote-footer">Cliente satisfecho</footer>
+    <!-- Testimonial -->
+    <blockquote class="home-quote">
+      <p>«Una experiencia excelente, fácil de reservar y con una atención increíble»</p>
+      <footer>— Cliente satisfecho</footer>
     </blockquote>
   </div>
 </template>
@@ -75,120 +90,324 @@ import logo from '../assets/logo.png';
 export default {
   name: 'Home',
   data() {
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    const initials = usuario?.nombre
+      ?.split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(p => p[0])
+      .join('')
+      .toUpperCase() || '';
     return {
-      usuario: JSON.parse(localStorage.getItem('usuario')),
-      logoUrl: logo
+      usuario,
+      logoUrl: logo,
+      initials,
+      features: [
+        { icon: '📶', title: 'Wi-Fi de alta velocidad',  desc: 'Conectividad premium en toda la instalación sin costo adicional.' },
+        { icon: '🌊', title: 'Vista al mar y terraza',   desc: 'Habitaciones con vistas privilegiadas y espacios al aire libre.' },
+        { icon: '🍽️', title: 'Servicio a la habitación', desc: 'Disponible las 24 horas para satisfacer tus necesidades.' },
+        { icon: '🔒', title: 'Caja fuerte y minibar',    desc: 'Amenidades de lujo incluidas en cada habitación.' },
+      ]
     };
   }
 };
 </script>
 
 <style scoped>
-.home-container {
-  background: linear-gradient(135deg, #fdfcfb, #e2d1c3);
-  padding: 2rem;
-  border-radius: 12px;
-  max-width: 900px;
-  margin: auto;
-  color: #333;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+/* ── Page wrapper ── */
+.home-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  display: grid;
+  gap: 3rem;
 }
 
-.logo {
-  max-height: 120px;
-  margin-bottom: 1rem;
+/* ── Hero ── */
+.home-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
 }
 
-.titulo {
-  font-size: 2.5rem;
-  color: #2c3e50;
+.home-hero__content {
+  display: grid;
+  gap: 1.25rem;
 }
 
-.subtitulo {
-  color: #7f8c8d;
-  margin-bottom: 2rem;
+.home-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.9rem;
+  background: var(--color-sage-soft);
+  border: 1px solid #c3cc9b;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--color-olive-dark);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: fit-content;
 }
 
-.user-info {
-  margin-top: 1rem;
-  color: #6c757d;
+.home-hero__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--color-olive);
+  animation: pulse 2s ease infinite;
 }
 
-.nav-links {
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.4); }
+}
+
+.home-hero__title {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 900;
+  color: var(--color-ink);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.home-hero__title em {
+  font-style: normal;
+  color: var(--color-olive-dark);
+}
+
+.home-hero__sub {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-muted);
+  line-height: 1.7;
+  max-width: 38ch;
+}
+
+/* User pill */
+.home-hero__user {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 1.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  width: fit-content;
 }
 
-.btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  text-decoration: none;
-  transition: background 0.3s ease;
+.home-hero__avatar {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  background: var(--color-soft-black);
+  color: var(--color-bone);
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 900;
+  flex-shrink: 0;
 }
 
-.btn-habitaciones {
-  background-color: #3498db;
-  color: white;
-}
-.btn-habitaciones:hover {
-  background-color: #2980b9;
-}
-
-.btn-reservas {
-  background-color: #27ae60;
-  color: white;
-}
-.btn-reservas:hover {
-  background-color: #1e8449;
-}
-
-.btn-servicios {
-  background-color: #16a085;
-  color: white;
-}
-.btn-servicios:hover {
-  background-color: #117a65;
-}
-
-.info-section {
-  margin-top: 3rem;
-  text-align: left;
-}
-
-.info-section h3 {
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.info-section p {
-  color: #555;
-}
-
-ul {
-  padding-left: 1.2rem;
-  color: #444;
-}
-ul li {
-  margin-bottom: 10px;
-  font-size: 1.05rem;
-}
-
-.testimonio {
-  margin-top: 3rem;
-  font-style: italic;
-  color: #2d3436;
-  background: #ecf0f1;
-  padding: 1rem;
-  border-left: 4px solid #3498db;
-  border-radius: 6px;
-}
-.blockquote-footer {
-  margin-top: 0.5rem;
-  color: #7f8c8d;
+.home-hero__user-name {
+  margin: 0;
   font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.home-hero__user-role {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  text-transform: capitalize;
+}
+
+/* Nav actions */
+.home-hero__actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.home-btn--primary {
+  background: var(--color-olive-dark);
+  color: var(--color-bone);
+}
+.home-btn--primary:hover {
+  background: #353e22;
+  box-shadow: 0 10px 24px rgba(66, 72, 47, 0.28);
+  transform: translateY(-1px);
+}
+
+.home-btn--outline {
+  background: var(--color-card);
+  color: var(--color-ink);
+  border-color: var(--color-border);
+}
+.home-btn--outline:hover {
+  background: var(--color-bone);
+  transform: translateY(-1px);
+}
+
+/* Hero image */
+.home-hero__img-wrap {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 360px;
+  box-shadow: var(--shadow-hover);
+}
+
+.home-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.home-hero__img-wrap:hover .home-hero__img {
+  transform: scale(1.04);
+}
+
+.home-hero__img-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(95,101,72,0.15), transparent);
+  pointer-events: none;
+}
+
+/* ── Features ── */
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.home-feature-card {
+  padding: 1.35rem 1.25rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 0.5rem;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.home-feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.home-feature-card__icon {
+  font-size: 1.75rem;
+}
+
+.home-feature-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.home-feature-card__desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+/* ── Mission / Vision ── */
+.home-mvision {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.home-mvision__item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  align-items: flex-start;
+}
+
+.home-mvision__icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.home-mvision__title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.home-mvision__text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  line-height: 1.7;
+}
+
+/* ── Quote ── */
+.home-quote {
+  margin: 0;
+  padding: 1.5rem 2rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-olive);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.home-quote p {
+  margin: 0;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--color-ink);
+  line-height: 1.6;
+}
+
+.home-quote footer {
+  margin-top: 0.65rem;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+  .home-hero__img-wrap {
+    height: 240px;
+    order: -1;
+  }
+  .home-mvision {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

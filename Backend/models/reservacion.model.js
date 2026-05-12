@@ -3,110 +3,128 @@ import db from '../config/database.js';
 // ── Consultas de reservaciones ──────────────────────────────
 
 export const findAllAdmin = () =>
-  db.execute(`
-    SELECT r.*, u.nombre AS cliente_nombre, u.email AS cliente_email,
-           h.numero AS habitacion_numero, th.nombre AS tipo_habitacion,
-           p.nombre AS plan_nombre
-    FROM reservas r
-    JOIN usuarios u         ON r.usuario_id    = u.id
-    JOIN habitaciones h     ON r.habitacion_id = h.id
-    JOIN tipos_habitacion th ON h.tipo_habitacion_id = th.id
-    LEFT JOIN planes p      ON r.plan_id = p.id
-    ORDER BY r.created_at DESC
-  `);
+  db.execute('SELECT * FROM v_reservaciones_detalle ORDER BY created_at DESC');
 
 export const findAllTrabajador = () =>
   db.execute(`
-    SELECT r.id, r.fecha_checkin, r.fecha_checkout, r.numero_huespedes, r.estado,
-           u.nombre AS cliente_nombre, u.telefono AS cliente_telefono,
-           h.numero AS habitacion_numero, th.nombre AS tipo_habitacion,
-           p.nombre AS plan_nombre
-    FROM reservas r
-    JOIN usuarios u         ON r.usuario_id    = u.id
-    JOIN habitaciones h     ON r.habitacion_id = h.id
-    JOIN tipos_habitacion th ON h.tipo_habitacion_id = th.id
-    LEFT JOIN planes p      ON r.plan_id = p.id
-    WHERE r.estado IN ('confirmada', 'en_curso')
-    ORDER BY r.fecha_checkin ASC
+    SELECT * FROM v_reservaciones_detalle 
+    WHERE estado IN ('confirmada', 'checkin')
+    ORDER BY fecha_entrada ASC
   `);
 
 export const findByUsuario = (usuario_id) =>
   db.execute(`
-    SELECT r.*, h.numero AS habitacion_numero,
-           th.nombre AS tipo_habitacion, p.nombre AS plan_nombre
-    FROM reservas r
-    JOIN habitaciones h     ON r.habitacion_id = h.id
-    JOIN tipos_habitacion th ON h.tipo_habitacion_id = th.id
-    LEFT JOIN planes p      ON r.plan_id = p.id
-    WHERE r.usuario_id = ?
-    ORDER BY r.created_at DESC
+    SELECT v.*, r.usuario_id 
+    FROM v_reservaciones_detalle v
+    JOIN reservaciones r ON v.id = r.id
+    WHERE r.usuario_id = ? 
+    ORDER BY v.created_at DESC
   `, [usuario_id]);
 
 export const findById = (id) =>
-  db.execute(`
-    SELECT r.*, h.numero AS habitacion_numero,
-           th.nombre AS tipo_habitacion, p.nombre AS plan_nombre
-    FROM reservas r
-    JOIN habitaciones h     ON r.habitacion_id = h.id
-    JOIN tipos_habitacion th ON h.tipo_habitacion_id = th.id
-    LEFT JOIN planes p      ON r.plan_id = p.id
-    WHERE r.id = ?
-  `, [id]);
+  db.execute('SELECT * FROM v_reservaciones_detalle WHERE id = ?', [id]);
 
-export const insert = (data) =>
-  db.execute(
-    `INSERT INTO reservas
-      (usuario_id, habitacion_id, plan_id, fecha_checkin, fecha_checkout, numero_huespedes, notas, precio_total)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-    [data.usuario_id, data.habitacion_id, data.plan_id,
-     data.fecha_checkin, data.fecha_checkout, data.numero_huespedes, data.notas]
+export const insert = async (data) => {
+  const numero_confirmacion = `RES-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  
+  // Calcular noches
+  const entrada = new Date(data.fecha_checkin);
+  const salida = new Date(data.fecha_checkout);
+  const noches = Math.ceil((salida - entrada) / (1000 * 60 * 60 * 24));
+
+  const [result] = await db.execute(
+    `INSERT INTO reservaciones
+      (usuario_id, habitacion_id, plan_id, fecha_entrada, fecha_salida, adultos, notas, precio_total, numero_confirmacion, noches, estado)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmada')`,
+    [
+      data.usuario_id, 
+      data.habitacion_id, 
+      data.plan_id || null,
+      data.fecha_checkin, 
+      data.fecha_checkout, 
+      data.numero_huespedes || 1, 
+      data.notas || null,
+      data.precio_total || 0,
+      numero_confirmacion,
+      noches > 0 ? noches : 1
+    ]
   );
+
+  // Si hay servicios, insertarlos (esto requiere lógica adicional en el service para calcular precios)
+  if (data.servicios && data.servicios.length > 0) {
+    for (const servicio_id of data.servicios) {
+      await db.execute(
+        'INSERT INTO reserva_servicios (reserva_id, servicio_id, precio_unitario, cantidad) VALUES (?, ?, 0, 1)',
+        [result.insertId, servicio_id]
+      );
+    }
+  }
+
+  return [result];
+};
 
 export const updateEstado = (id, estado) =>
-  db.execute('UPDATE reservas SET estado = ? WHERE id = ?', [estado, id]);
+  db.execute('UPDATE reservaciones SET estado = ? WHERE id = ?', [estado, id]);
 
-export const updateFechas = (id, fecha_checkin, fecha_checkout, habitacion_id) =>
-  db.execute(
-    'UPDATE reservas SET fecha_checkin = ?, fecha_checkout = ?, habitacion_id = ? WHERE id = ?',
-    [fecha_checkin, fecha_checkout, habitacion_id, id]
+export const updateFechas = (id, fecha_checkin, fecha_checkout, habitacion_id) => {
+  const entrada = new Date(fecha_checkin);
+  const salida = new Date(fecha_checkout);
+  const noches = Math.ceil((salida - entrada) / (1000 * 60 * 60 * 24));
+
+  return db.execute(
+    'UPDATE reservaciones SET fecha_entrada = ?, fecha_salida = ?, habitacion_id = ?, noches = ? WHERE id = ?',
+    [fecha_checkin, fecha_checkout, habitacion_id, noches > 0 ? noches : 1, id]
   );
+};
 
 // ── Consultas de habitaciones ───────────────────────────────
 
 export const findHabitacionesDisponibles = () =>
   db.execute(`
-    SELECT h.id, h.numero, h.imagen_url, h.estado,
-           th.nombre AS tipo_nombre, th.precio_base
-    FROM habitaciones h
-    JOIN tipos_habitacion th ON h.tipo_habitacion_id = th.id
-    WHERE h.estado = 'disponible'
+    SELECT * FROM v_habitaciones_estado 
+    WHERE estado = 'disponible' 
+    AND activa = 1
   `);
 
 export const findHabitacionById = (id) =>
-  db.execute(`
-    SELECT h.id, h.numero, h.estado, h.descripcion, h.piso, h.imagen_url,
-           th.nombre AS tipo_nombre, th.precio_base, th.capacidad_personas
-    FROM habitaciones h
-    JOIN tipos_habitacion th ON h.tipo_habitacion_id = th.id
-    WHERE h.id = ?
-  `, [id]);
+  db.execute('SELECT * FROM v_habitaciones_estado WHERE id = ?', [id]);
 
 export const updateEstadoHabitacion = (id, estado) =>
   db.execute('UPDATE habitaciones SET estado = ? WHERE id = ?', [estado, id]);
 
 export const updatePrecioHabitacion = (tipo_habitacion_id, precio) =>
-  db.execute('UPDATE tipos_habitacion SET precio_base = ? WHERE id = ?', [precio, tipo_habitacion_id]);
+  db.execute('UPDATE habitaciones SET precio_noche = ? WHERE tipo_id = ?', [precio, tipo_habitacion_id]);
 
 export const findTipoHabitacionByHabitacionId = (id) =>
-  db.execute('SELECT tipo_habitacion_id FROM habitaciones WHERE id = ?', [id]);
+  db.execute('SELECT tipo_id AS tipo_habitacion_id FROM habitaciones WHERE id = ?', [id]);
 
-// ── Disponibilidad via stored procedure ─────────────────────
+// ── Disponibilidad (Consulta Directa) ──
 
 export const verificarDisponibilidadSP = async (habitacion_id, fecha_checkin, fecha_checkout) => {
-  await db.execute(
-    'CALL verificar_disponibilidad_habitacion(?, ?, ?, @disponible)',
-    [habitacion_id, fecha_checkin, fecha_checkout]
+  const [rows] = await db.execute(
+    `SELECT COUNT(*) AS count 
+     FROM reservaciones 
+     WHERE habitacion_id = ? 
+       AND estado IN ('confirmada', 'checkin') 
+       AND fecha_entrada < ? 
+       AND fecha_salida > ?`,
+    [habitacion_id, fecha_checkout, fecha_checkin]
   );
-  const [[row]] = await db.execute('SELECT @disponible AS disponible');
-  return Boolean(row.disponible);
+  return rows[0].count === 0;
+};
+
+export const obtenerHabitaciones = async (req, res) => {
+  try {
+    const [habitaciones] = await db.execute('SELECT * FROM v_habitaciones_estado');
+    return res.status(200).json({
+      ok: true,
+      data: habitaciones
+    });
+  } catch (error) {
+    console.error('Error al obtener habitaciones:', error);
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al obtener habitaciones'
+    });
+  }
 };

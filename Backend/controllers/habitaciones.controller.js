@@ -5,7 +5,7 @@ import {
   actualizarPrecioDto,
   actualizarEstadoDto,
   disponibilidadDto,
-} from '../dtos/habitacion.dto.js';
+} from '../dtos/habtacion.dtos.js';
 
 export const listar = async (req, res, next) => {
   try {

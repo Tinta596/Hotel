@@ -4,8 +4,6 @@ import './styles/global.css';
 import router from './router/index.js';
 import store from './store/index.js';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 
