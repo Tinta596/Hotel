@@ -4,6 +4,45 @@ const { verify } = pkg;
 import db from '../config/database.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const publicRole = dbRole => (dbRole === 'recepcionista' ? 'trabajador' : dbRole);
+
+// renombrado de authenticateToken a verifyToken
+export const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token      = authHeader?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Token de acceso requerido' });
+  }
+
+  try {
+    const decoded = verify(token, JWT_SECRET);
+
+    const [users] = await db.execute(
+      `SELECT u.id, u.nombre, u.email, u.rol, u.activo
+       FROM usuarios u
+       WHERE u.id = ? AND u.activo = TRUE AND u.eliminado_en IS NULL`,
+      [decoded.userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(401).json({ error: 'Usuario no válido o inactivo' });
+    }
+
+    req.user = { ...users[0], rol_nombre: publicRole(users[0].rol) };
+    next();
+  } catch (err) {
+    return res.status(403).json({ error: 'Token no válido' });
+  }
+};
+
+// renombrado de requireRole a verifyRol
+export const verifyRol = (...roles) => (req, res, next) => {
+  if (!roles.includes(req.user?.rol_nombre)) {
+    return res.status(403).json({ error: 'Acceso denegado: rol insuficiente' });
+  }
+  next();
+};
 
 // Middleware: Autenticación del token y verificación del usuario activo
 const authenticateToken = async (req, res, next) => {
@@ -20,10 +59,9 @@ const authenticateToken = async (req, res, next) => {
     console.log('🔐 Token decodificado:', decoded);
 
     const [users] = await db.execute(
-      `SELECT u.*, r.nombre as rol_nombre 
-       FROM usuarios u 
-       JOIN roles r ON u.rol_id = r.id 
-       WHERE u.id = ? AND u.activo = TRUE`,
+      `SELECT u.id, u.nombre, u.email, u.rol, u.activo
+       FROM usuarios u
+       WHERE u.id = ? AND u.activo = TRUE AND u.eliminado_en IS NULL`,
       [decoded.userId]
     );
 
@@ -32,7 +70,7 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ error: 'Usuario no válido o inactivo' });
     }
 
-    req.user = users[0];
+    req.user = { ...users[0], rol_nombre: publicRole(users[0].rol) };
     next();
   } catch (error) {
     console.error('❌ Error al verificar token o ejecutar consulta:', error.message);
@@ -62,7 +100,7 @@ const isOwnerOrAdmin = (req, res, next) => {
 
   // Aquí chequeas id del recurso en params, body o query:
   const resourceUserId = req.params.userId || req.body.usuario_id || req.query.usuario_id;
-  if (resourceUserId && parseInt(resourceUserId) !== req.user.id) {
+  if (resourceUserId && Number.parseInt(resourceUserId) !== req.user.id) {
     return res
       .status(403)
       .json({ error: 'Solo puedes acceder a tus propios recursos' });
@@ -71,4 +109,4 @@ const isOwnerOrAdmin = (req, res, next) => {
   next();
 };
 
-export  { authenticateToken, requireRole, isOwnerOrAdmin };
+export { authenticateToken, requireRole, isOwnerOrAdmin };

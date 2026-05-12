@@ -1,14 +1,22 @@
 // controllers/reservacion.controller.js
 import * as ReservacionService from '../services/reservacion.service.js';
-import { crearReservacionDto, actualizarFechasDto } from '../dtos/reservacion.dto.js';
+import { crearReservacionDto, actualizarFechasDto } from '../dtos/reservacion.dtos.js';
 
 export const obtenerReservas = async (req, res, next) => {
   try {
-    const reservas = await ReservacionService.listarReservaciones(
-      req.user.rol_nombre, req.user.id
-    );
-    res.json(reservas);
-  } catch (err) { next(err); }
+    const rol = req.user?.rol_nombre || 'cliente';
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuario no identificado' });
+    }
+
+    const reservas = await ReservacionService.listarReservaciones(rol, userId);
+    res.json(reservas || []);
+  } catch (err) {
+    console.error('[ReservasController] Error en obtenerReservas:', err);
+    next(err);
+  }
 };
 
 export const crearReserva = async (req, res, next) => {
@@ -63,6 +71,16 @@ export const obtenerHabitacionesDisponibles = async (req, res, next) => {
     res.json(habitaciones);
   } catch (err) { next(err); }
 };
+
+export const obtenerHabitaciones = async (req, res, next) => {
+  try{
+    const habitaciones = await ReservacionService.listarHabitacionesDisponibles();
+    res.json(habitaciones);
+  }
+  catch (error){
+    next(error);
+  }
+}
 
 export const obtenerHabitacionPorId = async (req, res, next) => {
   try {

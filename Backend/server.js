@@ -17,7 +17,7 @@ import planesRoutes from './routes/planes.js';
 import usuariosRoutes from './routes/usuarios.js';
 import logRoutes from './modules/logs/log.routes.js';
 
-import { authenticateToken } from './middleware/auth.js';
+import { authenticateToken } from './middleware/auth.middleware.js';
 import errorHandler from './middleware/errorHandler.js';
 import { connectMongo } from './config/mongo.js';
 

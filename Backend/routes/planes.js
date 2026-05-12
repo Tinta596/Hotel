@@ -1,46 +1,45 @@
 import { Router }        from 'express';
-import * as PlanController from '../controllers/plan.controller.js';
-import { verifyToken }   from '../middlewares/auth.middleware.js';
-import { verifyRol }     from '../middlewares/roles.middleware.js';
+import * as PlanController from '../controllers/planes.controller.js';
+import { authenticateToken, requireRole }   from '../middleware/auth.middleware.js';
 
 const router = Router();
 
 // GET /api/planes
 router.get('/',
-  verifyToken,
+  authenticateToken,
   PlanController.listar
 );
 
 // GET /api/planes/:id
 router.get('/:id',
-  verifyToken,
+  authenticateToken,
   PlanController.obtenerPorId
 );
 
 // GET /api/planes/:id/servicios
 router.get('/:id/servicios',
-  verifyToken,
+  authenticateToken,
   PlanController.obtenerServiciosDePlan
 );
 
 // POST /api/planes
 router.post('/',
-  verifyToken,
-  verifyRol('admin'),
+  authenticateToken,
+  requireRole(['admin']),
   PlanController.crear
 );
 
 // PUT /api/planes/:id
 router.put('/:id',
-  verifyToken,
-  verifyRol('admin'),
+  authenticateToken,
+  requireRole(['admin']),
   PlanController.actualizar
 );
 
 // DELETE /api/planes/:id  (soft delete)
 router.delete('/:id',
-  verifyToken,
-  verifyRol('admin'),
+  authenticateToken,
+  requireRole(['admin']),
   PlanController.desactivar
 );
 

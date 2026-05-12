@@ -5,7 +5,7 @@ import {
   actualizarPrecioDto,
   actualizarEstadoDto,
   disponibilidadDto,
-} from '../dtos/habitacion.dto.js';
+} from '../dtos/habtacion.dtos.js';
 
 export const listar = async (req, res, next) => {
   try {
@@ -107,5 +107,12 @@ export const listarMantenimientos = async (req, res, next) => {
   try {
     const mantenimientos = await HabitacionService.listarMantenimientos(req.params.id);
     res.json(mantenimientos);
+  } catch (err) { next(err); }
+};
+
+export const listarTipos = async (req, res, next) => {
+  try {
+    const tipos = await HabitacionService.listarTipos();
+    res.json(tipos);
   } catch (err) { next(err); }
 };

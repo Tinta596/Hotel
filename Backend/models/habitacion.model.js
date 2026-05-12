@@ -23,43 +23,55 @@ export const findById = (id) =>
         [id]
     );
 
-// ── Disponibilidad por fechas — usa fn_habitacion_disponible ─
-export const verficarDisponibilidad = async (habitacion_id, fecha_checkin, fecha_checkout) => {
-    const [[row]] = await db.execute(
-        'SELECT fn_habitacion_disponible(?, ?, ?, 0) AS disponible',
-        [habitacion_id, fecha_checkin, fecha_checkout]
+// ── Disponibilidad por fechas ───────────────────────────────
+export const verificarDisponibilidad = async (habitacion_id, fecha_checkin, fecha_checkout) => {
+    const [rows] = await db.execute(
+        `SELECT COUNT(*) AS count 
+         FROM reservaciones 
+         WHERE habitacion_id = ? 
+           AND estado IN ('confirmada', 'checkin') 
+           AND fecha_entrada < ? 
+           AND fecha_salida > ?`,
+        [habitacion_id, fecha_checkout, fecha_checkin]
     );
-    return Boolean(row.disponible);
+    return rows[0].count === 0;
 };
 
 // Habitaciones disponibles en un rango de fechas
 export const findDisponiblesPorFechas = (fecha_checkin, fecha_checkout) =>
   db.execute(`
-    SELECT h.id, h.numero, h.tipo, h.piso, h.capacidad, h.descripcion,
-           fn_precio_vigente(h.id, ?) AS precio_noche
+    SELECT h.id, h.numero, t.nombre AS tipo, h.piso, t.capacidad, h.descripcion,
+           h.precio_base AS precio_noche
     FROM habitaciones h
-    WHERE h.activo = 1
-      AND fn_habitacion_disponible(h.id, ?, ?, 0) = 1
+    JOIN tipos_habitacion t ON h.tipo_id = t.id
+    WHERE h.activa = 1
+      AND h.id NOT IN (
+        SELECT habitacion_id 
+        FROM reservaciones 
+        WHERE estado IN ('confirmada', 'checkin') 
+          AND fecha_entrada < ? 
+          AND fecha_salida > ?
+      )
     ORDER BY h.piso, h.numero
-  `, [fecha_checkin, fecha_checkin, fecha_checkout]);
+  `, [fecha_checkout, fecha_checkin]);
 
-// ── Precio vigente — usa fn_precio_vigente ──────────────────
-export const getPrecioViginte = async (habitacion_id, fecha) => {
+// ── Precio vigente ──────────────────────────────────────────
+export const getPrecioVigente = async (habitacion_id, fecha) => {
     const [[row]] = await db.execute(
-        'SELECT fn_precio_vigente(? , ?) AS precio',
-        [habitacion_id, fecha]
+        'SELECT precio_base AS precio FROM habitaciones WHERE id = ?',
+        [habitacion_id]
     );
-    return row.precio;
+    return row?.precio || 0;
 };
 
 // ── Escrituras ──────────────────────────────────────────────
 export const insert = (data) => 
     db.execute(
         `INSERT INTO habitaciones
-            (numero, tipo, piso, capacidad, precio_noche, descripcion)
-        VALUES (?, ?, ?, ?, ?, ?)`,
-        [data.numero, data.tipo, data.piso,
-        data.capacidad, data.precio_noche, data.descripcion ?? null]
+            (numero, tipo_id, piso, precio_base, descripcion, activa)
+        VALUES (?, ?, ?, ?, ?, 1)`,
+        [data.numero, data.tipo_id, data.piso,
+        data.precio_base, data.descripcion ?? null]
     );
 
 export const updateEstado = (id, estado) =>
@@ -70,20 +82,19 @@ export const updateEstado = (id, estado) =>
 
 export const updatePrecio = (id, precio) =>
   db.execute(
-    'UPDATE habitaciones SET precio_noche = ? WHERE id = ?',
+    'UPDATE habitaciones SET precio_base = ? WHERE id = ?',
     [precio, id]
   );
 
 export const softDelete = (id) =>
   db.execute(
-    'UPDATE habitaciones SET activo = 0 WHERE id = ?',
+    'UPDATE habitaciones SET activa = 0 WHERE id = ?',
     [id]
   );
 
-// ── Mantenimiento — usa sp del stored procedure ─────────────
+// ── Mantenimiento ───────────────────────────────────────────
 
 export const abrirMantenimiento = async (habitacion_id, motivo, prioridad, responsable, usuario_id) => {
-  // Cambia estado + inserta en tabla mantenimiento
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
@@ -140,3 +151,6 @@ export const findMantenimientos = (habitacion_id) =>
     `SELECT * FROM mantenimiento WHERE habitacion_id = ? ORDER BY fecha_inicio DESC`,
     [habitacion_id]
   );
+
+export const findAllTipos = () =>
+  db.execute('SELECT * FROM tipos_habitacion');
