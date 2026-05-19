@@ -1,5 +1,5 @@
 <template>
-  <div class="main-layout">
+  <div class="main-layout" :class="{ 'layout--premium': isPremium }">
     <Sidebar
       :collapsed="collapsed"
       :mobile-open="mobileOpen"
@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import Navbar from './Navbar.vue';
 import Sidebar from './Sidebar.vue';
 
@@ -32,6 +32,11 @@ defineProps({
 
 const collapsed = ref(false);
 const mobileOpen = ref(false);
+
+const isPremium = computed(() => {
+  const user = JSON.parse(localStorage.getItem('usuario') || '{}');
+  return user.nivel_fidelidad === 'premium';
+});
 </script>
 
 <style scoped>
@@ -41,6 +46,12 @@ const mobileOpen = ref(false);
   background:
     radial-gradient(circle at top left, rgba(95, 101, 72, 0.18), transparent 28rem),
     linear-gradient(180deg, #e8dfcf 0%, #d8cbb6 100%);
+  transition: background 0.5s ease;
+}
+.layout--premium {
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.08), transparent 40rem),
+    linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
 }
 
 .main-layout__workspace {

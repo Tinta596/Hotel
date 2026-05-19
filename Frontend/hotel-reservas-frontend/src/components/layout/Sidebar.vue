@@ -10,7 +10,7 @@
 
     <nav class="sidebar__nav" aria-label="Navegacion principal">
       <RouterLink
-        v-for="item in navigation"
+        v-for="item in visibleNavigation"
         :key="item.to"
         :to="item.to"
         class="sidebar__link"
@@ -39,7 +39,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { RouterLink } from 'vue-router';
+import { useStore } from 'vuex';
 import {
   BedDouble,
   CalendarCheck,
@@ -47,7 +47,10 @@ import {
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
-  UsersRound
+  UsersRound,
+  Info,
+  BarChart3,
+  Users
 } from 'lucide-vue-next';
 import Button from '../common/Button.vue';
 
@@ -58,19 +61,31 @@ const props = defineProps({
 
 defineEmits(['toggle-collapse', 'navigate']);
 
+const store = useStore();
+const storedUser = computed(() => store.state.usuario || JSON.parse(localStorage.getItem('usuario') || '{}'));
+const userRole = computed(() => storedUser.value?.rol || 'admin');
+
 const navigation = [
-  { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
-  { label: 'Reservas', to: '/reservas', icon: CalendarCheck },
-  { label: 'Habitaciones', to: '/habitaciones', icon: BedDouble },
-  { label: 'Servicios', to: '/servicios', icon: ConciergeBell },
-  { label: 'Usuarios', to: '/register/trabajador', icon: UsersRound }
+  { label: 'Dashboard',      to: '/admin',      icon: LayoutDashboard, roles: ['admin'] },
+  { label: 'Estadísticas',   to: '/analytics',  icon: BarChart3,       roles: ['admin'] },
+  { label: 'Huéspedes',      to: '/huespedes',  icon: Users,           roles: ['admin', 'trabajador'] },
+  { label: 'Reservas',       to: '/reservas',   icon: CalendarCheck,   roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Habitaciones',   to: '/habitaciones', icon: BedDouble,     roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Misión y Visión',to: '/mision-vision', icon: Info,         roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Servicios',      to: '/servicios',  icon: ConciergeBell,   roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Usuarios',       to: '/register/trabajador', icon: UsersRound, roles: ['admin'] }
 ];
+
+const visibleNavigation = computed(() => 
+  navigation.filter(item => !item.roles || item.roles.includes(userRole.value))
+);
 
 const sidebarClasses = computed(() => [
   'sidebar',
   {
     'sidebar--collapsed': props.collapsed,
-    'sidebar--mobile-open': props.mobileOpen
+    'sidebar--mobile-open': props.mobileOpen,
+    'sidebar--premium': storedUser.value?.nivel_fidelidad === 'premium'
   }
 ]);
 </script>
@@ -89,7 +104,11 @@ const sidebarClasses = computed(() => [
     linear-gradient(180deg, rgba(31, 33, 28, 0.98), rgba(18, 20, 15, 0.99)),
     var(--color-soft-black);
   border-right: 1px solid rgba(216, 200, 173, 0.14);
-  transition: width 220ms ease, transform 220ms ease;
+  transition: width 220ms ease, transform 220ms ease, background 0.4s ease;
+}
+.sidebar--premium {
+  background: linear-gradient(180deg, #050505, #0a0a0a);
+  border-right-color: rgba(212, 175, 55, 0.15);
 }
 
 .sidebar--collapsed {
@@ -121,6 +140,11 @@ const sidebarClasses = computed(() => [
   border-radius: 0.9rem;
   font-weight: 900;
 }
+.sidebar--premium .sidebar__mark {
+  background: linear-gradient(135deg, #c9a84c, #f0d080);
+  color: #000;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
 
 .sidebar__brand-copy {
   display: grid;
@@ -130,6 +154,9 @@ const sidebarClasses = computed(() => [
 .sidebar__brand-copy strong {
   color: var(--color-bone);
   font-size: 0.95rem;
+}
+.sidebar--premium .sidebar__brand-copy strong {
+  color: #fff;
 }
 
 .sidebar__brand-copy span {
@@ -157,10 +184,20 @@ const sidebarClasses = computed(() => [
   background: rgba(238, 229, 212, 0.08);
   transform: translateX(2px);
 }
+.sidebar--premium .sidebar__link:hover {
+  color: #f0d080;
+  background: rgba(212, 175, 55, 0.1);
+}
 
 .sidebar__link--active {
   color: var(--color-bone);
   background: rgba(238, 229, 212, 0.13);
+}
+.sidebar--premium .sidebar__link--active {
+  color: #000;
+  background: linear-gradient(90deg, #c9a84c, #f0d080);
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
 }
 
 .sidebar__footer {
@@ -182,6 +219,10 @@ const sidebarClasses = computed(() => [
   background: var(--color-sage);
   border-radius: 999px;
   box-shadow: 0 0 0 5px rgba(154, 164, 135, 0.16);
+}
+.sidebar--premium .sidebar__status span {
+  background: #d4af37;
+  box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.15);
 }
 
 :deep(.ui-button--ghost) {

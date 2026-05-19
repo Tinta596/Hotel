@@ -20,7 +20,7 @@
           <select v-model="habitacionSeleccionada" class="res-input">
             <option :value="null">Selecciona una habitación</option>
             <option v-for="h in habitaciones" :key="h.id" :value="h">
-              Habitación {{ h.numero }} — {{ h.tipo_habitacion || h.tipo_nombre }}
+              Habitación {{ h.numero }} — {{ h.tipo }}
             </option>
           </select>
         </div>
@@ -28,11 +28,23 @@
         <!-- Dates -->
         <div class="res-field">
           <label class="res-label">Check-in</label>
-          <input type="date" v-model="fechaCheckin" class="res-input" />
+          <Datepicker 
+            v-model="fechaCheckinDate" 
+            class="res-datepicker" 
+            :disabled-dates="disabledDates"
+            placeholder="Selecciona fecha"
+            :lower-limit="new Date()"
+          />
         </div>
         <div class="res-field">
           <label class="res-label">Check-out</label>
-          <input type="date" v-model="fechaCheckout" class="res-input" />
+          <Datepicker 
+            v-model="fechaCheckoutDate" 
+            class="res-datepicker" 
+            :disabled-dates="disabledDates"
+            placeholder="Selecciona fecha"
+            :lower-limit="fechaCheckinDate || new Date()"
+          />
         </div>
 
         <!-- Guests & Plan -->
@@ -45,7 +57,7 @@
           <select v-model="planSeleccionado" class="res-input">
             <option :value="null">Sin plan</option>
             <option v-for="plan in planes" :key="plan.id" :value="plan.id">
-              {{ plan.nombre }} — {{ plan.tipo }} {{ plan.porcentaje_descripcion }}%
+              {{ plan.nombre }} (+${{ plan.precio_adicional }})
             </option>
           </select>
         </div>
@@ -88,18 +100,30 @@
           <div class="res-card__dates">
             <div class="res-card__date-item">
               <p class="res-card__date-label">Check-in</p>
-              <p class="res-card__date-value">{{ formatFecha(res.fecha_checkin) }}</p>
+               <p class="res-card__date-value">{{ formatFecha(res.fecha_entrada) }}</p>
             </div>
             <div class="res-card__date-sep">→</div>
             <div class="res-card__date-item">
               <p class="res-card__date-label">Check-out</p>
-              <p class="res-card__date-value">{{ formatFecha(res.fecha_checkout) }}</p>
+               <p class="res-card__date-value">{{ formatFecha(res.fecha_salida) }}</p>
             </div>
           </div>
 
           <div v-if="['pendiente', 'confirmada'].includes(res.estado)" class="res-card__actions">
             <button class="res-btn res-btn--outline" @click="abrirModal(res)">
               Cambiar fechas
+            </button>
+            <button class="res-btn res-btn--outline" @click="verFactura(res.id)">
+              Ver Factura
+            </button>
+            <InvoiceDownloadButton :reserva-id="res.id" />
+            <button 
+              v-if="['admin', 'trabajador'].includes(usuario?.rol)" 
+              class="res-btn res-btn--outline" 
+              @click="abrirConsumoModal(res)"
+              style="border-color: #4a5d4b; color: #4a5d4b; font-weight: 700;"
+            >
+              🍽️ Registrar Consumo
             </button>
             <button class="res-btn res-btn--danger" @click="cancelar(res.id)">
               Cancelar
@@ -127,11 +151,21 @@
           <div class="res-modal__grid">
             <div class="res-field">
               <label class="res-label">Check-in</label>
-              <input type="date" v-model="nuevaCheckin" class="res-input" />
+              <Datepicker 
+                v-model="nuevaCheckinDate" 
+                class="res-datepicker" 
+                :disabled-dates="disabledDatesModal"
+                :lower-limit="new Date()"
+              />
             </div>
             <div class="res-field">
               <label class="res-label">Check-out</label>
-              <input type="date" v-model="nuevaCheckout" class="res-input" />
+              <Datepicker 
+                v-model="nuevaCheckoutDate" 
+                class="res-datepicker" 
+                :disabled-dates="disabledDatesModal"
+                :lower-limit="nuevaCheckinDate || new Date()"
+              />
             </div>
           </div>
 
@@ -142,13 +176,34 @@
         </div>
       </div>
     </transition>
+
+    <!-- Invoice Modal -->
+    <InvoicePreviewModal 
+      :is-open="facturaModalOpen" 
+      :reserva-id="facturaReservaId" 
+      @close="facturaModalOpen = false" 
+    />
+
+    <!-- Registrar Consumo Modal -->
+    <RegistrarConsumoModal 
+      :is-open="consumoModalOpen" 
+      :reserva="reservaSeleccionadaConsumo" 
+      @close="consumoModalOpen = false" 
+      @saved="cargarDatos" 
+    />
   </div>
 </template>
 
 <script>
 import api from '../services/api';
+import Datepicker from 'vue3-datepicker';
+import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
+import InvoicePreviewModal from '../components/analytics/InvoicePreviewModal.vue';
+import InvoiceDownloadButton from '../components/analytics/InvoiceDownloadButton.vue';
+import RegistrarConsumoModal from '../components/crm/RegistrarConsumoModal.vue';
 
 export default {
+  components: { Datepicker, InvoicePreviewModal, InvoiceDownloadButton, RegistrarConsumoModal },
   data() {
     return {
       habitacionSeleccionada: null,
@@ -162,15 +217,64 @@ export default {
       habitaciones: [],
       planes: [],
       reservas: [],
+      fechasOcupadas: [],
       modalAbierto: false,
       nuevaCheckin: '',
       nuevaCheckout: '',
-      reservaSeleccionada: null
+      reservaSeleccionada: null,
+      facturaModalOpen: false,
+      facturaReservaId: null,
+      consumoModalOpen: false,
+      reservaSeleccionadaConsumo: null,
+      usuario: null
     };
   },
 
+
+  computed: {
+    fechaCheckinDate: {
+      get() { return this.fechaCheckin ? parseISO(this.fechaCheckin) : null; },
+      set(val) { this.fechaCheckin = val ? format(val, 'yyyy-MM-dd') : ''; }
+    },
+    fechaCheckoutDate: {
+      get() { return this.fechaCheckout ? parseISO(this.fechaCheckout) : null; },
+      set(val) { this.fechaCheckout = val ? format(val, 'yyyy-MM-dd') : ''; }
+    },
+    nuevaCheckinDate: {
+      get() { return this.nuevaCheckin ? parseISO(this.nuevaCheckin) : null; },
+      set(val) { this.nuevaCheckin = val ? format(val, 'yyyy-MM-dd') : ''; }
+    },
+    nuevaCheckoutDate: {
+      get() { return this.nuevaCheckout ? parseISO(this.nuevaCheckout) : null; },
+      set(val) { this.nuevaCheckout = val ? format(val, 'yyyy-MM-dd') : ''; }
+    },
+    disabledDates() {
+      return {
+        dates: this.fechasOcupadas.flatMap(range => 
+          eachDayOfInterval({ start: parseISO(range.fecha_entrada), end: parseISO(range.fecha_salida) })
+        )
+      };
+    },
+    disabledDatesModal() {
+      if (!this.reservaSeleccionada) return this.disabledDates;
+      // Para el modal, excluimos la reserva actual del bloqueo
+      const filtradas = this.fechasOcupadas.filter(f => f.id !== this.reservaSeleccionada.id);
+      return {
+        dates: filtradas.flatMap(range => 
+          eachDayOfInterval({ start: parseISO(range.fecha_entrada), end: parseISO(range.fecha_salida) })
+        )
+      };
+    }
+  },
+
   watch: {
-    habitacionSeleccionada: 'calcularPrecio',
+    habitacionSeleccionada: {
+      handler(newVal) {
+        this.cargarOcupacion();
+        this.calcularPrecio();
+      },
+      immediate: true
+    },
     fechaCheckin: 'calcularPrecio',
     fechaCheckout: 'calcularPrecio',
     planSeleccionado: 'calcularPrecio'
@@ -198,7 +302,7 @@ export default {
         ]);
         this.habitaciones = habitacionesRes.data.map(h => ({
           ...h,
-          tipo_id: h.tipo_habitacion_id || h.tipo_id || null
+          tipo_id: h.tipo_id || h.tipo_habitacion_id || null
         }));
         this.planes = planesRes.data;
         this.reservas = reservasRes.data;
@@ -208,17 +312,28 @@ export default {
       }
     },
 
+    async cargarOcupacion() {
+      if (!this.habitacionSeleccionada) {
+        this.fechasOcupadas = [];
+        return;
+      }
+      try {
+        const res = await api.get(`/reservas/ocupacion/${this.habitacionSeleccionada.id}`);
+        this.fechasOcupadas = res.data;
+      } catch (error) {
+        console.error('Error al cargar ocupación:', error);
+      }
+    },
+
     async calcularPrecio() {
       this.error = '';
       this.precioEstimado = '';
       if (!this.habitacionSeleccionada || !this.fechaCheckin || !this.fechaCheckout) return;
-      const tipoHabitacionId = this.habitacionSeleccionada.tipo_id;
-      if (!tipoHabitacionId) { this.error = 'Tipo de habitación inválido.'; return; }
       try {
         const res = await api.post('/reservas/calcular-precio', {
           fecha_checkin: this.fechaCheckin,
           fecha_checkout: this.fechaCheckout,
-          tipo_habitacion_id: tipoHabitacionId,
+          habitacion_id: this.habitacionSeleccionada.id,
           plan_id: this.planSeleccionado || null
         });
         this.precioEstimado = `$${res.data.total}`;
@@ -261,8 +376,8 @@ export default {
 
     abrirModal(reserva) {
       this.modalAbierto = true;
-      this.nuevaCheckin = reserva.fecha_checkin;
-      this.nuevaCheckout = reserva.fecha_checkout;
+      this.nuevaCheckin = reserva.fecha_entrada;
+      this.nuevaCheckout = reserva.fecha_salida;
       this.reservaSeleccionada = reserva;
     },
 
@@ -275,9 +390,10 @@ export default {
 
     async guardarFecha() {
       try {
-        await api.put(`/reservas/${this.reservaSeleccionada.id}`, {
+        await api.patch(`/reservas/${this.reservaSeleccionada.id}/fechas`, {
           fecha_checkin: this.nuevaCheckin,
-          fecha_checkout: this.nuevaCheckout
+          fecha_checkout: this.nuevaCheckout,
+          habitacion_id: this.reservaSeleccionada.habitacion_id
         });
         await this.cargarDatos();
         this.cerrarModal();
@@ -294,10 +410,28 @@ export default {
       } catch (err) {
         this.error = err.response?.data?.error || 'No se pudo cancelar la reserva.';
       }
+    },
+
+    verFactura(id) {
+      this.facturaReservaId = id;
+      this.facturaModalOpen = true;
+    },
+
+    abrirConsumoModal(reserva) {
+      this.reservaSeleccionadaConsumo = reserva;
+      this.consumoModalOpen = true;
     }
   },
 
   mounted() {
+    const usuarioRaw = localStorage.getItem('usuario');
+    if (usuarioRaw) {
+      try {
+        this.usuario = JSON.parse(usuarioRaw);
+      } catch (e) {
+        console.error('Error al parsear usuario en Reservas.vue', e);
+      }
+    }
     this.cargarDatos();
   }
 };
@@ -388,6 +522,29 @@ export default {
   outline: none;
   border-color: var(--color-olive);
   box-shadow: 0 0 0 3px rgba(111, 116, 83, 0.16);
+}
+
+:deep(.res-datepicker) {
+  width: 100%;
+}
+
+:deep(.v3dp__datepicker) {
+  --v3dp-bg-color: #f6f0e4;
+  --v3dp-border-color: var(--color-border);
+  --v3dp-hover-bg-color: var(--color-sage-soft);
+  --v3dp-selected-bg-color: var(--color-olive-dark);
+  --v3dp-selected-color: var(--color-bone);
+}
+
+:deep(.v3dp__input) {
+  width: 100%;
+  padding: 0.68rem 0.9rem;
+  background: #f6f0e4;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 0.9rem;
 }
 
 .res-textarea {
@@ -511,6 +668,25 @@ export default {
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
+.modern-table th {
+  padding: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ead9f;
+  border-bottom: 1px solid #f0ede8;
+}
+
+.text-right { text-align: right; }
+
+.modern-table td { text-align: right; }
+
+.modern-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f0ede8;
+}
+
 .estado--confirmada { background: #d6f0cc; color: #2e5c20; }
 .estado--pendiente  { background: #f7e8c8; color: #7a6020; }
 .estado--cancelada  { background: #f7d5d0; color: #7a2b22; }

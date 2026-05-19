@@ -1,5 +1,5 @@
 <template>
-  <div class="home-page">
+  <div class="home-page" :class="{ 'home--premium': usuario?.nivel_fidelidad === 'premium' }">
 
     <!-- Hero section -->
     <section class="home-hero">
@@ -91,6 +91,9 @@ export default {
   name: 'Home',
   data() {
     const usuario = JSON.parse(localStorage.getItem('usuario'));
+    console.log('--- DEBUG HOME ---');
+    console.log('Usuario:', usuario);
+    console.log('Nivel:', usuario?.nivel_fidelidad);
     const initials = usuario?.nombre
       ?.split(' ')
       .filter(Boolean)
@@ -121,6 +124,11 @@ export default {
   padding: 2rem 1.25rem 4rem;
   display: grid;
   gap: 3rem;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.home--premium {
+  background: #080808;
+  color: #f0ede8;
 }
 
 /* ── Hero ── */
@@ -151,6 +159,11 @@ export default {
   text-transform: uppercase;
   width: fit-content;
 }
+.home--premium .home-hero__badge {
+  background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05));
+  border-color: rgba(212,175,55,0.4);
+  color: #f0d080;
+}
 
 .home-hero__dot {
   width: 0.45rem;
@@ -158,6 +171,10 @@ export default {
   border-radius: 50%;
   background: var(--color-olive);
   animation: pulse 2s ease infinite;
+}
+.home--premium .home-hero__dot {
+  background: #d4af37;
+  box-shadow: 0 0 8px #d4af37;
 }
 
 @keyframes pulse {
@@ -173,10 +190,17 @@ export default {
   line-height: 1.05;
   letter-spacing: -0.03em;
 }
+.home--premium .home-hero__title {
+  color: #fff;
+}
 
 .home-hero__title em {
   font-style: normal;
   color: var(--color-olive-dark);
+}
+.home--premium .home-hero__title em {
+  color: #d4af37;
+  text-shadow: 0 0 15px rgba(212,175,55,0.3);
 }
 
 .home-hero__sub {
@@ -185,6 +209,9 @@ export default {
   color: var(--color-muted);
   line-height: 1.7;
   max-width: 38ch;
+}
+.home--premium .home-hero__sub {
+  color: #aaa;
 }
 
 /* User pill */
@@ -197,6 +224,10 @@ export default {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   width: fit-content;
+}
+.home--premium .home-hero__user {
+  background: #111;
+  border-color: rgba(212,175,55,0.2);
 }
 
 .home-hero__avatar {
@@ -211,12 +242,20 @@ export default {
   font-weight: 900;
   flex-shrink: 0;
 }
+.home--premium .home-hero__avatar {
+  background: linear-gradient(135deg, #c9a84c, #f0d080);
+  color: #1a1a1a;
+  box-shadow: 0 0 15px rgba(212,175,55,0.3);
+}
 
 .home-hero__user-name {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--color-ink);
+}
+.home--premium .home-hero__user-name {
+  color: #fff;
 }
 
 .home-hero__user-role {
@@ -251,6 +290,15 @@ export default {
   background: var(--color-olive-dark);
   color: var(--color-bone);
 }
+.home--premium .home-btn--primary {
+  background: linear-gradient(135deg, #c9a84c, #b8860b);
+  color: #111;
+  border: none;
+}
+.home--premium .home-btn--primary:hover {
+  background: linear-gradient(135deg, #f0d080, #c9a84c);
+  box-shadow: 0 10px 24px rgba(212,175,55,0.3);
+}
 .home-btn--primary:hover {
   background: #353e22;
   box-shadow: 0 10px 24px rgba(66, 72, 47, 0.28);
@@ -261,6 +309,15 @@ export default {
   background: var(--color-card);
   color: var(--color-ink);
   border-color: var(--color-border);
+}
+.home--premium .home-btn--outline {
+  background: rgba(255,255,255,0.05);
+  color: #d4af37;
+  border-color: rgba(212,175,55,0.3);
+}
+.home--premium .home-btn--outline:hover {
+  background: rgba(212,175,55,0.1);
+  border-color: #d4af37;
 }
 .home-btn--outline:hover {
   background: var(--color-bone);
@@ -292,6 +349,9 @@ export default {
   background: linear-gradient(135deg, rgba(95,101,72,0.15), transparent);
   pointer-events: none;
 }
+.home--premium .home-hero__img-glow {
+  background: linear-gradient(135deg, rgba(212,175,55,0.2), transparent);
+}
 
 /* ── Features ── */
 .home-features {
@@ -310,6 +370,10 @@ export default {
   gap: 0.5rem;
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
+.home--premium .home-feature-card {
+  background: #111;
+  border-color: rgba(212,175,55,0.1);
+}
 .home-feature-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
@@ -324,6 +388,9 @@ export default {
   font-size: 0.95rem;
   font-weight: 800;
   color: var(--color-ink);
+}
+.home--premium .home-feature-card__title {
+  color: #d4af37;
 }
 
 .home-feature-card__desc {
@@ -350,6 +417,10 @@ export default {
   box-shadow: var(--shadow-soft);
   align-items: flex-start;
 }
+.home--premium .home-mvision__item {
+  background: #111;
+  border-color: rgba(212,175,55,0.1);
+}
 
 .home-mvision__icon {
   font-size: 1.8rem;
@@ -362,6 +433,9 @@ export default {
   font-size: 1rem;
   font-weight: 800;
   color: var(--color-ink);
+}
+.home--premium .home-mvision__title {
+  color: #d4af37;
 }
 
 .home-mvision__text {
@@ -381,6 +455,11 @@ export default {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 }
+.home--premium .home-quote {
+  background: #111;
+  border-color: rgba(212,175,55,0.2);
+  border-left-color: #d4af37;
+}
 
 .home-quote p {
   margin: 0;
@@ -388,6 +467,9 @@ export default {
   font-style: italic;
   color: var(--color-ink);
   line-height: 1.6;
+}
+.home--premium .home-quote p {
+  color: #fff;
 }
 
 .home-quote footer {

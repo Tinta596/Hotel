@@ -1,5 +1,5 @@
 <template>
-  <header class="topbar">
+  <header class="topbar" :class="{ 'topbar--premium': isPremium }">
     <div class="topbar__left">
       <Button
         class="topbar__menu"
@@ -12,7 +12,9 @@
       </Button>
 
       <div class="topbar__breadcrumbs">
-        <span>Administracion</span>
+        <span v-if="userRole === 'admin'">Administración</span>
+        <span v-else-if="userRole === 'trabajador'">Gestión de Staff</span>
+        <span v-else>Portal de Huésped</span>
         <ChevronRight :size="15" />
         <strong>{{ title }}</strong>
       </div>
@@ -58,6 +60,7 @@ const search = ref('');
 const storedUser = computed(() => store.state.usuario || JSON.parse(localStorage.getItem('usuario') || '{}'));
 const userName = computed(() => storedUser.value?.nombre || storedUser.value?.name || 'Administrador');
 const userRole = computed(() => storedUser.value?.rol || 'admin');
+const isPremium = computed(() => storedUser.value?.nivel_fidelidad === 'premium');
 const initials = computed(() =>
   userName.value
     .split(' ')
@@ -88,6 +91,11 @@ const logout = () => {
   background: rgba(251, 248, 240, 0.88);
   border-bottom: 1px solid rgba(222, 213, 196, 0.9);
   backdrop-filter: blur(18px);
+  transition: all 0.4s ease;
+}
+.topbar--premium {
+  background: rgba(10, 10, 10, 0.85);
+  border-bottom-color: rgba(212, 175, 55, 0.2);
 }
 
 .topbar__left,
@@ -112,6 +120,12 @@ const logout = () => {
 
 .topbar__breadcrumbs strong {
   color: var(--color-ink);
+}
+.topbar--premium .topbar__breadcrumbs strong {
+  color: #d4af37;
+}
+.topbar--premium .topbar__breadcrumbs span {
+  color: #888;
 }
 
 .topbar__menu {
@@ -138,6 +152,11 @@ const logout = () => {
   font-size: 0.78rem;
   font-weight: 900;
 }
+.topbar--premium .topbar__avatar {
+  background: linear-gradient(135deg, #c9a84c, #f0d080);
+  color: #111;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
 
 .topbar__identity {
   display: grid;
@@ -148,6 +167,9 @@ const logout = () => {
 .topbar__identity strong {
   color: var(--color-ink);
   font-size: 0.88rem;
+}
+.topbar--premium .topbar__identity strong {
+  color: #fff;
 }
 
 .topbar__identity span {

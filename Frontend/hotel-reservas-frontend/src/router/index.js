@@ -1,4 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { 
+  LayoutDashboard, 
+  CalendarCheck, 
+  BedDouble, 
+  ConciergeBell, 
+  UsersRound,
+  Info,
+  BarChart3
+} from 'lucide-vue-next';
 
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
@@ -10,7 +19,20 @@ import Habitaciones from '../views/Habitaciones.vue';
 import Servicios from '../views/Servicios.vue';
 import AdminDashboard from '../pages/Dashboard.vue';
 import AdminHabitaciones from '../pages/AdminHabitaciones.vue';
+import MisionVision from '../pages/MisionVision.vue';
 import DetalleHabitacion from '../views/DetalleHabitacion.vue';
+import AnalyticsDashboard from '../views/AnalyticsDashboard.vue';
+import GuestsCRM from '../views/GuestsCRM.vue';
+
+export const sidebarLinks = [
+  { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, roles: ['admin'] },
+  { label: 'Estadísticas', to: '/analytics', icon: BarChart3, roles: ['admin'] },
+  { label: 'Reservas', to: '/reservas', icon: CalendarCheck, roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Habitaciones', to: '/habitaciones', icon: BedDouble, roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Misión y Visión', to: '/mision-vision', icon: Info, roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Servicios', to: '/servicios', icon: ConciergeBell, roles: ['admin', 'trabajador', 'cliente'] },
+  { label: 'Usuarios', to: '/register/trabajador', icon: UsersRound, roles: ['admin'] }
+];
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -54,6 +76,18 @@ const routes = [
     meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
+    path: '/analytics',
+    name: 'Analytics',
+    component: AnalyticsDashboard,
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
+    path: '/huespedes',
+    name: 'GuestsCRM',
+    component: GuestsCRM,
+    meta: { requiresAuth: true, roles: ['admin', 'trabajador'] }
+  },
+  {
     path: '/admin/habitaciones',
     name: 'AdminHabitaciones',
     component: AdminHabitaciones,
@@ -65,6 +99,11 @@ const routes = [
     name: 'DashboardTrabajador',
     component: () => import('../views/TrabajadorDashboard.vue'),
     meta: { requiresAuth: true, roles: ['trabajador'] }
+  },
+  {
+    path: '/mision-vision',
+    name: 'MisionVision',
+    component: MisionVision
   },
   {
     path: '/habitaciones/:id',

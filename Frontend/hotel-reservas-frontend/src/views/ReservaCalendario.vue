@@ -31,7 +31,7 @@
       <select v-model="planId" class="form-select">
         <option value="">Sin plan</option>
         <option v-for="plan in planes" :key="plan.id" :value="plan.id">
-          {{ plan.nombre }} ({{ plan.tipo }}: {{ plan.porcentaje_descripcion }}%)
+          {{ plan.nombre }} (+${{ plan.precio_adicional }})
         </option>
       </select>
     </div>

@@ -16,3 +16,10 @@ export const actualizarFechasDto = Joi.object({
   fecha_checkout: Joi.date().greater(Joi.ref('fecha_checkin')).required(),
   habitacion_id:  Joi.number().integer().positive().required(),
 });
+
+export const calcularPrecioDto = Joi.object({
+  fecha_checkin:  Joi.date().required(),
+  fecha_checkout: Joi.date().greater(Joi.ref('fecha_checkin')).required(),
+  habitacion_id:  Joi.number().integer().positive().required(),
+  plan_id:        Joi.number().integer().positive().optional().allow(null)
+});

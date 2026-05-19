@@ -5,21 +5,29 @@ import db from '../config/database.js';
 // Usa v_habitaciones_estado (incluye huésped activo si hay)
 export const findAll = () => 
     db.execute(`
-        SELECT * FROM v_habitaciones_estado ORDER BY piso, numero
+        SELECT v.*, h.tipo_id 
+        FROM v_habitaciones_estado v
+        JOIN habitaciones h ON v.id = h.id
+        ORDER BY v.piso, v.numero
     `);
 
 // Habitaciones disponibles en este momento
 export const findDisponibles = () => 
     db.execute(`
-        SELECT * FROM v_habitaciones_estado
-        WHERE estado = 'disponible'
-        ORDER BY piso, numero
+        SELECT v.*, h.tipo_id 
+        FROM v_habitaciones_estado v
+        JOIN habitaciones h ON v.id = h.id
+        WHERE v.estado = 'disponible'
+        ORDER BY v.piso, v.numero
     `);
 
 // Detalle de una habitación por id
 export const findById = (id) =>
     db.execute(
-        'SELECT * FROM v_habitaciones_estado WHERE id = ?',
+        `SELECT v.*, h.tipo_id 
+         FROM v_habitaciones_estado v
+         JOIN habitaciones h ON v.id = h.id
+         WHERE v.id = ?`,
         [id]
     );
 
@@ -41,7 +49,7 @@ export const verificarDisponibilidad = async (habitacion_id, fecha_checkin, fech
 export const findDisponiblesPorFechas = (fecha_checkin, fecha_checkout) =>
   db.execute(`
     SELECT h.id, h.numero, t.nombre AS tipo, h.piso, t.capacidad, h.descripcion,
-           h.precio_base AS precio_noche
+           h.precio_base AS precio_noche, h.tipo_id
     FROM habitaciones h
     JOIN tipos_habitacion t ON h.tipo_id = t.id
     WHERE h.activa = 1

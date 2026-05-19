@@ -21,7 +21,8 @@
     "mongoose": "^8.17.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
-    "mysql2": "^3.6.0"
+    "mysql2": "^3.6.0",
+    "pdfmake": "^0.3.8"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",

@@ -1,6 +1,15 @@
-// controllers/reservacion.controller.js
 import * as ReservacionService from '../services/reservacion.service.js';
-import { crearReservacionDto, actualizarFechasDto } from '../dtos/reservacion.dtos.js';
+import { crearReservacionDto, actualizarFechasDto, calcularPrecioDto } from '../dtos/reservacion.dtos.js';
+
+export const calcularPrecio = async (req, res, next) => {
+  try {
+    const { error, value } = calcularPrecioDto.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const total = await ReservacionService.calcularPrecio(value);
+    res.json({ total });
+  } catch (err) { next(err); }
+};
 
 export const obtenerReservas = async (req, res, next) => {
   try {
@@ -95,3 +104,27 @@ export const actualizarPrecioHabitacion = async (req, res, next) => {
     res.json({ message: 'Precio actualizado correctamente' });
   } catch (err) { next(err); }
 };
+
+export const obtenerOcupacion = async (req, res, next) => {
+  try {
+    const ocupacion = await ReservacionService.obtenerOcupacion(req.params.habitacion_id);
+    res.json(ocupacion);
+  } catch (err) { next(err); }
+};
+
+export const registrarConsumo = async (req, res, next) => {
+  try {
+    const { servicio_id, cantidad } = req.body;
+    if (!servicio_id) {
+      return res.status(400).json({ error: 'El campo servicio_id es obligatorio' });
+    }
+
+    const resultado = await ReservacionService.registrarConsumoServicio(
+      req.params.id,
+      servicio_id,
+      cantidad || 1
+    );
+    res.status(200).json(resultado);
+  } catch (err) { next(err); }
+};
+

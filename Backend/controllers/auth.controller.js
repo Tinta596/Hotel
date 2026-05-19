@@ -7,11 +7,13 @@ import db from '../config/database.js';
 
 const publicRole = dbRole => {
   if (dbRole === 'recepcionista') return 'trabajador';
+  if (dbRole === 'cliente') return 'cliente';
   return dbRole;
 };
 
 const databaseRole = role => {
-  if (role === 'trabajador' || role === 'usuario') return 'recepcionista';
+  if (role === 'trabajador' || role === 'recepcionista') return 'recepcionista';
+  if (role === 'cliente' || role === 'usuario') return 'cliente';
   return role;
 };
 
@@ -31,7 +33,7 @@ const registerSchema = Joi.object({
   nombre: Joi.string().min(2).max(100).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  rol: Joi.string().valid('admin', 'trabajador', 'recepcionista', 'usuario').default('trabajador')
+  rol: Joi.string().valid('admin', 'trabajador', 'recepcionista', 'usuario', 'cliente').default('cliente')
 });
 
 export async function register(req, res, next) {
@@ -55,7 +57,7 @@ export async function register(req, res, next) {
 
     const passwordHash = await hash(password, 12);
     const [result] = await db.execute(
-      'INSERT INTO usuarios (nombre, email, password_hash, rol, activo) VALUES (?, ?, ?, ?, 1)',
+      'INSERT INTO usuarios (nombre, email, password_hash, rol, activo, nivel_fidelidad, tipo_cliente, puntos_fidelidad) VALUES (?, ?, ?, ?, 1, "basico", "individual", 0)',
       [nombre, email, passwordHash, rol]
     );
 
@@ -73,7 +75,10 @@ export async function register(req, res, next) {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
-        rol: publicRole(user.rol)
+        rol: publicRole(user.rol),
+        nivel_fidelidad: 'basico',
+        tipo_cliente: 'individual',
+        puntos_fidelidad: 0
       }
     });
   } catch (error) {
@@ -91,7 +96,7 @@ export async function login(req, res, next) {
 
     const { email, password } = value;
     const [users] = await db.execute(
-      `SELECT id, nombre, email, password_hash, rol, activo
+      `SELECT id, nombre, email, password_hash, rol, activo, nivel_fidelidad, tipo_cliente, puntos_fidelidad
        FROM usuarios
        WHERE email = ? AND eliminado_en IS NULL
        LIMIT 1`,
@@ -118,7 +123,10 @@ export async function login(req, res, next) {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
-        rol: publicRole(user.rol)
+        rol: publicRole(user.rol),
+        nivel_fidelidad: user.nivel_fidelidad || 'basico',
+        tipo_cliente: user.tipo_cliente || 'individual',
+        puntos_fidelidad: user.puntos_fidelidad || 0
       }
     });
   } catch (error) {

@@ -16,6 +16,8 @@ import serviciosRoutes from './routes/servicios.js';
 import planesRoutes from './routes/planes.js';
 import usuariosRoutes from './routes/usuarios.js';
 import logRoutes from './modules/logs/log.routes.js';
+import analyticsRoutes from './routes/analytics.js';
+import guestRoutes from './routes/guests.js';
 
 import { authenticateToken } from './middleware/auth.middleware.js';
 import errorHandler from './middleware/errorHandler.js';
@@ -53,7 +55,10 @@ app.use('/api/habitaciones', habitacionesRoutes);
 app.use('/api/servicios', serviciosRoutes);
 app.use('/api/planes', planesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
-app.use('/api', logRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/guests', guestRoutes);
+// Ruta fantasma para logs (ofuscada)
+app.use('/api/v1/sys/internal/audit-0x9a2b', logRoutes);
 
 // ✅ Health check
 app.get('/health', (req, res) => {
